@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://de1533io65jsv"]
+
+[ext_resource type="Script" uid="uid://b7syegd82vm1t" path="res://addons/statemachine/StateMachineState_AnyKeyToContinue.gd" id="1_5l24o"]
+[ext_resource type="Material" uid="uid://def3krwy2nsvo" path="res://art/green_graient.tres" id="2_75j4y"]
+
+[node name="SMS_Credits" type="Control" unique_id=445578385]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5l24o")
+fade_time = -1.0
+metadata/_custom_type_script = "uid://b7syegd82vm1t"
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1767637047]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer" unique_id=1168682313]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 16
+columns = 2
+
+[node name="FontAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=812837505]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Super Frog font:"
+horizontal_alignment = 2
+
+[node name="FontValue" type="Label" parent="CenterContainer/GridContainer" unique_id=1159938181]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "fsuarez913"
+
+[node name="ProgAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=1214270479]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Programming:"
+horizontal_alignment = 2
+
+[node name="ProgValue" type="Label" parent="CenterContainer/GridContainer" unique_id=552184507]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Jason Abbott"
+
+[node name="DesignAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=25283221]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Design:"
+horizontal_alignment = 2
+
+[node name="DesignValue" type="Label" parent="CenterContainer/GridContainer" unique_id=666163225]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Jesse Decker"

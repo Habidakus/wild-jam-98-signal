@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://dj1khlmnkob5b"]
+
+[ext_resource type="Script" uid="uid://b7syegd82vm1t" path="res://addons/statemachine/StateMachineState_AnyKeyToContinue.gd" id="1_wbi4h"]
+[ext_resource type="Material" uid="uid://def3krwy2nsvo" path="res://art/green_graient.tres" id="2_wbi4h"]
+
+[node name="SMS_Splash" type="Control" unique_id=1272371802]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wbi4h")
+fade_in = true
+fade_out = true
+fade_time = 1.0
+metadata/_custom_type_script = "uid://b7syegd82vm1t"
+
+[node name="Label" type="Label" parent="." unique_id=1431642155]
+material = ExtResource("2_wbi4h")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 92
+text = "Batrachain
+Urban
+Signal
+Corp"
+horizontal_alignment = 1

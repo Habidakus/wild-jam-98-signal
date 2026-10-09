@@ -1,0 +1,6 @@
+[gd_resource type="Theme" format=3 uid="uid://dv4rm6sfonmp8"]
+
+[ext_resource type="FontFile" uid="uid://3tjfovo2kmgb" path="res://fonts/Super Frog.ttf" id="1_2g1ym"]
+
+[resource]
+default_font = ExtResource("1_2g1ym")
