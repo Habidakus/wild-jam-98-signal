@@ -2,7 +2,7 @@ extends StateMachineState
 
 
 func _on_button_play_button_up() -> void:
-	pass # Replace with function body.
+	our_state_machine.switch_state("SMS_Play")
 
 
 func _on_button_credits_button_up() -> void:
