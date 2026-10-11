@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://tbfpu72ty3qq" path="res://scripts/sms_play.gd" id="1_yc7cj"]
 [ext_resource type="TileSet" uid="uid://btpbefeyvvie0" path="res://maps/tileset_dummy.tres" id="2_x7n7y"]
+[ext_resource type="TileSet" uid="uid://c28txgsyaetma" path="res://maps/tileset_fog_of_war.tres" id="3_nw82y"]
 
 [node name="SMS_Play" type="Control" unique_id=191438879]
 layout_mode = 3
@@ -11,6 +12,10 @@ offset_bottom = 40.0
 script = ExtResource("1_yc7cj")
 metadata/_custom_type_script = "uid://bbl41p6swfbs4"
 
-[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=381075681]
+[node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=381075681]
 unique_name_in_owner = true
 tile_set = ExtResource("2_x7n7y")
+
+[node name="FogOfWarLayer" type="TileMapLayer" parent="." unique_id=318256740]
+unique_name_in_owner = true
+tile_set = ExtResource("3_nw82y")

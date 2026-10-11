@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://ct1uspbj72sy6"]
+
+[ext_resource type="Script" uid="uid://biqiwu1jkb76b" path="res://scripts/loot_marker.gd" id="1_60l2m"]
+
+[node name="LootMarker" type="Node2D" unique_id=287536599]
+script = ExtResource("1_60l2m")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1566878859]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.84313726, 0, 1)
