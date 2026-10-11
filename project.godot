@@ -13,6 +13,7 @@ config_version=5
 config/name="wild-jam-98-signal"
 run/main_scene="uid://dfdrkqobv8f3j"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/image="uid://dqd4hclluv2vb"
 config/icon="res://icon.svg"
 
 [display]
