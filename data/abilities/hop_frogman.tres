@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://gri8rt877fo2"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_j4sp0"]
+
+[resource]
+script = ExtResource("1_j4sp0")
+ability_name = "Hop"
+target = 1
+range = 3
+mechanism = 4
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"

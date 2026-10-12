@@ -2,13 +2,14 @@
 
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_fhhlg"]
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="1_p4fxc"]
-[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern_stun.tres" id="2_bf1b7"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_bf1b7"]
 [ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_h3tqq"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_bf1b7"]
 
 [resource]
 script = ExtResource("1_p4fxc")
 unit_name = "Frogman"
 action_points = 2
 unit_side = 1
-abilities = Array[ExtResource("1_fhhlg")]([ExtResource("2_bf1b7"), ExtResource("3_h3tqq")])
+abilities = Array[ExtResource("1_fhhlg")]([ExtResource("2_bf1b7"), ExtResource("3_h3tqq"), ExtResource("4_bf1b7")])
 metadata/_custom_type_script = "uid://cobklneaf4pkw"

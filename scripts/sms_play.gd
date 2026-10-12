@@ -1,6 +1,6 @@
 class_name Play extends StateMachineState
 
-const _footstep_time: float = 0.5
+const _footstep_time: float = 0.125
 var _seen_cells: Dictionary[int,bool] = {}
 var _walls: Dictionary[int, bool] = {}
 var _max_x: int = 70
