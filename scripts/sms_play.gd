@@ -1,5 +1,6 @@
 class_name Play extends StateMachineState
 
+
 const _footstep_time: float = 0.125
 var _seen_cells: Dictionary[int,bool] = {}
 var _walls: Dictionary[int, bool] = {}
@@ -13,7 +14,9 @@ var _party_walking_towards_end: bool = true
 var _footstep: float = _footstep_time
 
 
-func _ready() -> void:
+func enter_state() -> void:
+	super.enter_state()
+	%PlayerControlls.show()
 	%TerrainLayer.clear()
 	#var noise: FastNoiseLite = FastNoiseLite.new()
 	#noise.noise_type = FastNoiseLite.TYPE_SIMPLEX # FastNoiseLite.TYPE_PERLIN
@@ -64,8 +67,19 @@ func _ready() -> void:
 	var a_spot: Vector2i = _find_a_spot()
 	_start_spot = _find_farthest_spot([a_spot])
 	_party_spot = _start_spot
-	var start_marker: PackedScene = load("res://scenes/markers/start_marker.tscn")
-	_place_object(start_marker.instantiate() as Node2D, _start_spot)
+	var start_marker_scene: PackedScene = load("res://scenes/markers/start_marker.tscn")
+	var start_marker_instance: Node2D = start_marker_scene.instantiate()
+	_place_object(start_marker_instance, _start_spot)
+	start_marker_instance.hide()
+
+	var unit_scene: PackedScene = load("res://scenes/units/test.tscn")
+	var frogman_resource: Unit = load("res://data/units/frogman.tres")
+	for i in range(0, 3):
+		var unit_graphic: UnitGraphic = unit_scene.instantiate()
+		unit_graphic.set_unit(frogman_resource)
+		_place_object(unit_graphic, _find_unoccupied_space_near(_start_spot))
+		unit_graphic.set_facing(Vector2i.RIGHT)
+	
 	_end_spot = _find_farthest_spot([_start_spot])
 	var end_marker: PackedScene = load("res://scenes/markers/end_marker.tscn")
 	_place_object(end_marker.instantiate() as Node2D, _end_spot)
@@ -80,6 +94,38 @@ func _ready() -> void:
 	var treasure_spot_b: Vector2i = _find_farthest_spot(path)
 	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
 	_update_fog_of_war()
+
+
+func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
+	var checked_spots: Dictionary[Vector2i, int] = {}
+	checked_spots[spot] = 0
+	var distance: int = 0
+	while true:
+		for check: Vector2i in checked_spots.keys():
+			if checked_spots[check] != distance:
+				continue
+			if _any_children_at(check):
+				for neighbor_spot: Vector2i in [spot + Vector2i.UP, spot + Vector2i.DOWN, spot + Vector2i.RIGHT, spot + Vector2i.LEFT]:
+					if _walls[neighbor_spot.x * _max_y + neighbor_spot.y]:
+						continue
+					if checked_spots.has(neighbor_spot):
+						continue
+					checked_spots[neighbor_spot] = distance + 1
+			else:
+				return check
+		distance += 1
+	return spot
+
+
+func _any_children_at(spot: Vector2i) -> bool:
+	for child: Node in %TerrainLayer.get_children():
+		if %TerrainLayer.local_to_map(child.position) == spot:
+			return true
+	return false
+
+
+func _ready() -> void:
+	pass
 
 
 func _process(delta: float) -> void:
@@ -111,8 +157,8 @@ func _process(delta: float) -> void:
 func _update_fog_of_war() -> void:
 	%FogOfWarLayer.clear()
 	var light_cones: Dictionary[int, int] = _generate_light_cones(_party_spot)
-	for x in range(0, _max_x):
-		for y in range(0, _max_y):
+	for x in range(-5, _max_x + 5):
+		for y in range(-5, _max_y + 5):
 			var coord: int = x * _max_y + y
 			var map_loc: Vector2i = Vector2i(x, y)
 			if light_cones.has(coord) and _is_in_party_forward_arc(map_loc):

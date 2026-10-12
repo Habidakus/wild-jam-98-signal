@@ -26,6 +26,7 @@ layout_mode = 2
 theme_override_constants/separation = 44
 
 [node name="ButtonPlay" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1210350386]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 64
@@ -45,6 +46,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ButtonCredits" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2084615181]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 64
@@ -64,6 +66,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ButtonQuit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=169657680]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 64

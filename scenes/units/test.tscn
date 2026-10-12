@@ -1,11 +1,22 @@
 [gd_scene format=3 uid="uid://dej1l747k7yqt"]
 
+[ext_resource type="Script" uid="uid://cc1lcjxosqell" path="res://scripts/unit_graphic.gd" id="1_6w6uq"]
+[ext_resource type="Texture2D" uid="uid://bhkusd4y1dv7t" path="res://art/frogman_tmp.png" id="2_yy328"]
+[ext_resource type="Texture2D" uid="uid://ylfkeyv2jef8" path="res://art/facing_icon.png" id="3_biv2c"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ra2i3"]
 size = Vector2(16, 16)
 
-[node name="Area2D" type="Area2D" unique_id=780249689]
+[node name="Unit" type="Area2D" unique_id=780249689]
+script = ExtResource("1_6w6uq")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=619690669]
 shape = SubResource("RectangleShape2D_ra2i3")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1863628303]
+[node name="UnitIcon" type="Sprite2D" parent="." unique_id=1863628303]
+unique_name_in_owner = true
+texture = ExtResource("2_yy328")
+
+[node name="FacingIcon" type="Sprite2D" parent="." unique_id=1905455541]
+unique_name_in_owner = true
+texture = ExtResource("3_biv2c")
