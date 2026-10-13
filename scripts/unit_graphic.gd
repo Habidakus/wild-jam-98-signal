@@ -4,10 +4,6 @@ class_name UnitGraphic extends Area2D
 var _unit_stats: Unit
 
 
-func _ready() -> void:
-	%FacingIcon.hide()
-
-
 func set_unit(stats: Unit, show_facing_element: bool) -> void:
 	_unit_stats = stats
 	if show_facing_element:
