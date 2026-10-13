@@ -5,7 +5,7 @@
 [ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_bf1b7"]
 [ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_h3tqq"]
 [ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_bf1b7"]
-[ext_resource type="Texture2D" uid="uid://bhkusd4y1dv7t" path="res://art/frogman_tmp.png" id="6_h3tqq"]
+[ext_resource type="Texture2D" uid="uid://dnmyka1mvsf7q" path="res://art/wild_frogs/sprites/frog_01_classic.png" id="6_h3tqq"]
 
 [resource]
 script = ExtResource("1_p4fxc")
