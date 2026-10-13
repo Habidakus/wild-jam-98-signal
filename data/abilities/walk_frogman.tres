@@ -1,10 +1,12 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://cfml25su7geis"]
 
+[ext_resource type="AudioStream" uid="uid://bx2uxcxhqlt7t" path="res://sounds/gravel_footsteps_01.wav" id="1_k0ote"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_ygidl"]
 
 [resource]
 script = ExtResource("1_ygidl")
 ability_name = "Move"
+activation_sound = ExtResource("1_k0ote")
 target = 1
 ability_range = 6
 mechanism = 3
