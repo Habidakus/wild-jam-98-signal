@@ -66,3 +66,16 @@ material = ExtResource("2_75j4y")
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "Jesse Decker"
+
+[node name="SwampAssetsAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=1126099448]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Swamp Assets:"
+horizontal_alignment = 2
+
+[node name="SwampAssetsValue" type="Label" parent="CenterContainer/GridContainer" unique_id=277966452]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "CraftPix.net"
