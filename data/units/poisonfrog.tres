@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Unit" format=3 uid="uid://chdrinwbum38w"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_a0i1o"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_16uym"]
+[ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_ea6t2"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_eh0fw"]
+[ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_bknp8"]
+[ext_resource type="SpriteFrames" uid="uid://ct1r5u7h7pu1m" path="res://art/wild_frogs/animations/frog_02_blue/sprite_frames.tres" id="6_a45mt"]
+[ext_resource type="Texture2D" uid="uid://7g2p1bfe6mvb" path="res://art/wild_frogs/sprites/frog_03_purple.png" id="7_a0i1o"]
+
+[resource]
+script = ExtResource("5_bknp8")
+unit_name = "Frogman"
+texture = ExtResource("7_a0i1o")
+sprite_frames = ExtResource("6_a45mt")
+unit_description = "Poison Frog does not enjoy flatulance based humor. It's a natural process. Let's be serious."
+action_points = 2
+unit_side = 1
+hit_points = 10
+abilities = Array[ExtResource("1_a0i1o")]([ExtResource("2_16uym"), ExtResource("3_ea6t2"), ExtResource("4_eh0fw")])
+metadata/_custom_type_script = "uid://cobklneaf4pkw"

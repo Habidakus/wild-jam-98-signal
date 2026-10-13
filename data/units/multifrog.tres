@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Unit" format=3 uid="uid://3qjbie81jx5e"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_bwylj"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_yhol1"]
+[ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_n6d7d"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_bmyow"]
+[ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_32pvs"]
+[ext_resource type="SpriteFrames" uid="uid://ct1r5u7h7pu1m" path="res://art/wild_frogs/animations/frog_02_blue/sprite_frames.tres" id="6_onw86"]
+[ext_resource type="Texture2D" uid="uid://cxrplusxoxi8i" path="res://art/wild_frogs/sprites/frog_04_red.png" id="7_bwylj"]
+
+[resource]
+script = ExtResource("5_32pvs")
+unit_name = "Frogman"
+texture = ExtResource("7_bwylj")
+sprite_frames = ExtResource("6_onw86")
+unit_description = "Multi Frog has so many tongues. So many."
+action_points = 2
+unit_side = 1
+hit_points = 10
+abilities = Array[ExtResource("1_bwylj")]([ExtResource("2_yhol1"), ExtResource("3_n6d7d"), ExtResource("4_bmyow")])
+metadata/_custom_type_script = "uid://cobklneaf4pkw"

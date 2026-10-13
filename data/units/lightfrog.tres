@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Unit" format=3 uid="uid://bvjq1dnsdsup5"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_vags0"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_rwasy"]
+[ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_pwh1j"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_pi554"]
+[ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_bykk8"]
+[ext_resource type="SpriteFrames" uid="uid://cftfm5wk60j1a" path="res://art/wild_frogs/animations/frog_01_classic/sprite_frames.tres" id="6_f41w5"]
+[ext_resource type="Texture2D" uid="uid://b76hkmfbe5i20" path="res://art/wild_frogs/sprites/frog_02_blue.png" id="7_c487q"]
+
+[resource]
+script = ExtResource("5_bykk8")
+unit_name = "Frogman"
+texture = ExtResource("7_c487q")
+sprite_frames = ExtResource("6_f41w5")
+unit_description = "Light Frog would like to attend a rave."
+action_points = 2
+unit_side = 1
+hit_points = 10
+abilities = Array[ExtResource("1_vags0")]([ExtResource("2_rwasy"), ExtResource("3_pwh1j"), ExtResource("4_pi554")])
+metadata/_custom_type_script = "uid://cobklneaf4pkw"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Unit" format=3 uid="uid://c8yswtqkxxmux"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_r15hh"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_1y7wq"]
+[ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_3qqux"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_g31t7"]
+[ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_f0jxv"]
+[ext_resource type="SpriteFrames" uid="uid://ct1r5u7h7pu1m" path="res://art/wild_frogs/animations/frog_02_blue/sprite_frames.tres" id="6_266dv"]
+[ext_resource type="Texture2D" uid="uid://ckyxwqf20ldl1" path="res://art/wild_frogs/sprites/frog_05_king.png" id="7_r15hh"]
+
+[resource]
+script = ExtResource("5_f0jxv")
+unit_name = "Frogman"
+texture = ExtResource("7_r15hh")
+sprite_frames = ExtResource("6_266dv")
+unit_description = "King Frog expects obedience. Long live the King Frog."
+action_points = 2
+unit_side = 1
+hit_points = 15
+abilities = Array[ExtResource("1_r15hh")]([ExtResource("2_1y7wq"), ExtResource("3_3qqux"), ExtResource("4_g31t7")])
+metadata/_custom_type_script = "uid://cobklneaf4pkw"

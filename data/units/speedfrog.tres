@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Unit" format=3 uid="uid://fpivwm43xbs7"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_6hw3k"]
+[ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_vcpb4"]
+[ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_ps125"]
+[ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_bdj8b"]
+[ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_fyo8y"]
+[ext_resource type="SpriteFrames" uid="uid://ct1r5u7h7pu1m" path="res://art/wild_frogs/animations/frog_02_blue/sprite_frames.tres" id="6_msqy4"]
+[ext_resource type="Texture2D" uid="uid://cqti5ffrym3ag" path="res://art/wild_frogs/sprites/frog_07_dart.png" id="7_6hw3k"]
+
+[resource]
+script = ExtResource("5_fyo8y")
+unit_name = "Frogman"
+texture = ExtResource("7_6hw3k")
+sprite_frames = ExtResource("6_msqy4")
+unit_description = "Speed Frog ... woooooooosh ... Hey where'd he go?"
+action_points = 2
+unit_side = 1
+hit_points = 8
+abilities = Array[ExtResource("1_6hw3k")]([ExtResource("2_vcpb4"), ExtResource("3_ps125"), ExtResource("4_bdj8b")])
+metadata/_custom_type_script = "uid://cobklneaf4pkw"
