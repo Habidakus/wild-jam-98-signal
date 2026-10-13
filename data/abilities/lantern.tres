@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_1omqm")
 ability_name = "Lanturn Attack"
-ability_range = 4
+ability_range = 6
 mechanism = 6
 always_on = true
 angle = 35.0

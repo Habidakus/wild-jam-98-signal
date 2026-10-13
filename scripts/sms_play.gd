@@ -1,17 +1,16 @@
 class_name Play extends StateMachineState
 
 
-const _footstep_time: float = 0.125
 var _seen_cells: Dictionary[int,bool] = {}
 var _walls: Dictionary[int, bool] = {}
 var _max_x: int = 70
 var _max_y: int = 40
 var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
-var _party_spot: Vector2i = Vector2i.MIN
-var _party_facing: Vector2i = Vector2i.MIN
-var _party_walking_towards_end: bool = true
-var _footstep: float = _footstep_time
+var _unit_list: Array[Array] = []
+
+
+const _footstep_time: float = 0.66
 
 
 func enter_state() -> void:
@@ -66,19 +65,14 @@ func enter_state() -> void:
 				%TerrainLayer.set_cell(loc, 1, atlas)
 	var a_spot: Vector2i = _find_a_spot()
 	_start_spot = _find_farthest_spot([a_spot])
-	_party_spot = _start_spot
 	var start_marker_scene: PackedScene = load("res://scenes/markers/start_marker.tscn")
 	var start_marker_instance: Node2D = start_marker_scene.instantiate()
 	_place_object(start_marker_instance, _start_spot)
 	start_marker_instance.hide()
 
-	var unit_scene: PackedScene = load("res://scenes/units/test.tscn")
 	var frogman_resource: Unit = load("res://data/units/frogman.tres")
 	for i in range(0, 3):
-		var unit_graphic: UnitGraphic = unit_scene.instantiate()
-		unit_graphic.set_unit(frogman_resource, true)
-		_place_object(unit_graphic, _find_unoccupied_space_near(_start_spot))
-		unit_graphic.set_facing(Vector2i.RIGHT)
+		_add_unit(frogman_resource, _find_unoccupied_space_near(_start_spot), Vector2i.RIGHT)
 	
 	_end_spot = _find_farthest_spot([_start_spot])
 	var end_marker: PackedScene = load("res://scenes/markers/end_marker.tscn")
@@ -86,7 +80,6 @@ func enter_state() -> void:
 	var path: Array[Vector2i] = []
 	for p: Vector2i in _get_path(_start_spot, _end_spot):
 		path.append(p)
-	_party_facing = path[1] - path[0]
 	var treasure_spot_a: Vector2i = _find_farthest_spot(path)
 	var loot_marker: PackedScene = load("res://scenes/markers/loot_marker.tscn")
 	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_a)
@@ -94,6 +87,15 @@ func enter_state() -> void:
 	var treasure_spot_b: Vector2i = _find_farthest_spot(path)
 	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
 	_update_fog_of_war()
+
+
+func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
+	var unit_scene: PackedScene = load("res://scenes/units/test.tscn")
+	var unit_graphic: UnitGraphic = unit_scene.instantiate()
+	unit_graphic.set_unit(unit, true)
+	_place_object(unit_graphic, spot)
+	unit_graphic.set_facing(facing)
+	_unit_list.append([unit_graphic, facing, _find_a_spot(), randf() * _footstep_time])
 
 
 func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
@@ -129,48 +131,59 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_footstep -= delta
-	if _footstep >= 0.0:
-		return
-	_footstep += _footstep_time
-		
-	var path;
-	if _party_walking_towards_end:
-		if _party_spot == _end_spot:
-			_party_walking_towards_end = false
-			return
-		path = _get_path(_party_spot, _end_spot)
-	else:
-		if _party_spot == _start_spot:
-			_party_walking_towards_end = true
-			return
-		path = _get_path(_party_spot, _start_spot)
-		
-	if Vector2i(path[0]) == _party_spot:
-		_party_spot = Vector2i(path[1])
-	else:
-		_party_spot = Vector2i(path[0])
-	_party_facing = path[1] - path[0]
+	for entry: Array in _unit_list:
+		#[unit_graphic, facing, destination, time_until_footstep]
+		entry[3] -= delta
+		if entry[3] < 0:
+			entry[3] += _footstep_time
+			var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
+			if unit_map_loc == entry[2]:
+				entry[2] = _find_a_spot()
+			else:
+				var path: PackedVector2Array = _get_path(unit_map_loc, entry[2])
+				var next_cell: Vector2i = path[0]
+				var cell_after_that: Vector2i = path[1]
+				if path.size() == 2:
+					if next_cell == unit_map_loc:
+						next_cell = path[1]
+						cell_after_that = (next_cell - unit_map_loc) + next_cell
+				else:
+					assert(path.size() > 2)
+					if next_cell == unit_map_loc:
+						next_cell = path[1]
+						cell_after_that = path[2]
+				entry[0].position = %TerrainLayer.map_to_local(next_cell)
+				var facing: Vector2i = cell_after_that - next_cell
+				entry[0].set_facing(facing)
+				entry[1] = facing
 	_update_fog_of_war()
 
 
 func _update_fog_of_war() -> void:
 	%FogOfWarLayer.clear()
-	var light_cones: Dictionary[int, int] = _generate_light_cones(_party_spot)
+	var light_cones: Dictionary[int, float] = {}
+	for entry: Array in _unit_list:
+		var unit_graphic: UnitGraphic = entry[0] as UnitGraphic
+		var illumination: Ability = unit_graphic.get_illumination_ability()
+		if illumination != null:
+			var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
+			var unit_light_range: int = illumination.ability_range
+			var unit_facing: Vector2i = entry[1]
+			_generate_light_cones(unit_map_loc, unit_light_range, unit_facing, light_cones)
 	for x in range(-5, _max_x + 5):
 		for y in range(-5, _max_y + 5):
 			var coord: int = x * _max_y + y
 			var map_loc: Vector2i = Vector2i(x, y)
-			if light_cones.has(coord) and _is_in_party_forward_arc(map_loc):
+			if light_cones.has(coord):
 				_seen_cells[coord] = true
-				var dist: int = light_cones[coord]
-				if dist <= 3:
+				var dist: float = light_cones[coord]
+				if dist <= 0.25:
 					pass
-				elif dist <= 6:
+				elif dist <= 0.5:
 					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(0,0)) # one sixth
-				elif dist <= 9:
+				elif dist <= 0.75:
 					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(1,0)) # one third
-				elif dist <= 12:
+				else:
 					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(2,0)) # one half
 			elif _seen_cells.has(coord):
 				%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(3,0)) # five sixths
@@ -178,24 +191,27 @@ func _update_fog_of_war() -> void:
 				%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(4,0)) # full
 
 
-func _is_in_party_forward_arc(map_loc: Vector2i) -> bool:
-	var vector_from_party_to_map_loc: Vector2i = map_loc - _party_spot
-	var dot: float = Vector2(vector_from_party_to_map_loc).dot(_party_facing)
+func _is_in_cell_in_forward_arc(origin: Vector2i, facing: Vector2i, dest: Vector2i) -> bool:
+	var vector_from_party_to_map_loc: Vector2i = dest - origin
+	var dot: float = Vector2(vector_from_party_to_map_loc).dot(facing)
 	if dot <= 0:
 		return false
-	var lengths_sq: float = vector_from_party_to_map_loc.length_squared() * _party_facing.length_squared()
+	var lengths_sq: float = vector_from_party_to_map_loc.length_squared() * facing.length_squared()
 	#const cos_45_degree_sq: float = 0.5
 	#return (dot * dot) >= (cos_45_degree_sq * lengths_sq)
 	const cos_35_degree_sq: float = 0.67
 	return (dot * dot) >= (cos_35_degree_sq * lengths_sq)
 
 
-func _generate_light_cones(map_loc: Vector2i) -> Dictionary[int, int]:
-	var ret_val: Dictionary[int, int] = {}
-	ret_val[map_loc.x * _max_y + map_loc.y] = 0
-	for current_dist in range(0, 12):
-		for coord: int in ret_val.keys():
-			if ret_val[coord] != current_dist:
+func _generate_light_cones(map_loc: Vector2i, light_range: int, facing: Vector2i, light_map: Dictionary[int, float]) -> void:
+	var tmp_map: Dictionary[int, int] = {}
+	light_map[map_loc.x * _max_y + map_loc.y] = 0
+	tmp_map[map_loc.x * _max_y + map_loc.y] = 0
+	
+	for current_dist in range(0, light_range):
+		var next_light_float_strength: float = (1.0 + float(current_dist)) / float(light_range)
+		for coord: int in tmp_map.keys():
+			if tmp_map[coord] != current_dist:
 				continue
 			if _walls[coord]:
 				continue
@@ -204,10 +220,15 @@ func _generate_light_cones(map_loc: Vector2i) -> Dictionary[int, int]:
 			for fx in range(x-1, x+2):
 				for fy in range(y-1, y+2):
 					var f_coord: int = fx * _max_y + fy
-					if ret_val.has(f_coord):
+					if not _is_in_cell_in_forward_arc(map_loc, facing, Vector2i(fx, fy)):
 						continue
-					ret_val[fx * _max_y + fy] = current_dist + 1
-	return ret_val
+					if tmp_map.has(f_coord):
+						continue
+					tmp_map[fx * _max_y + fy] = current_dist + 1
+					if not light_map.has(f_coord):
+						light_map[fx * _max_y + fy] = next_light_float_strength
+					elif light_map[f_coord] > next_light_float_strength:
+						light_map[fx * _max_y + fy] = next_light_float_strength
 
 
 func _place_object(node: Node2D, map_loc: Vector2i) -> void:
@@ -346,6 +367,7 @@ func _connect_two_points(start: Vector2i, end: Vector2i) -> void:
 func _get_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
 	var astar: AStarGrid2D = AStarGrid2D.new()
 	astar.region = Rect2i(0, 0, _max_x, _max_y)
+	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
 	for x in range(0, _max_x):
 		for y in range(0, _max_y):
