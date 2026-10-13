@@ -1,10 +1,12 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://bla8ce0pek4xt"]
 
+[ext_resource type="AudioStream" uid="uid://bmc86envmu1er" path="res://sounds/Combos and Strikes A 001.wav" id="1_3m2ly"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_vkstg"]
 
 [resource]
 script = ExtResource("1_vkstg")
 ability_name = "Tongue"
+activation_sound = ExtResource("1_3m2ly")
 ability_range = 10
 mechanism = 2
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"
