@@ -27,5 +27,5 @@ flip_h = true
 unique_name_in_owner = true
 texture = ExtResource("2_biv2c")
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=911194833]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=557140617]
 unique_name_in_owner = true
