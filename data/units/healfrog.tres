@@ -5,12 +5,14 @@
 [ext_resource type="Resource" uid="uid://cfml25su7geis" path="res://data/abilities/walk_frogman.tres" id="3_crqa1"]
 [ext_resource type="Resource" uid="uid://gri8rt877fo2" path="res://data/abilities/hop_frogman.tres" id="4_w6qt8"]
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_hchrg"]
-[ext_resource type="Texture2D" uid="uid://bhkusd4y1dv7t" path="res://art/frogman_tmp.png" id="6_p0yr5"]
+[ext_resource type="SpriteFrames" uid="uid://ct1r5u7h7pu1m" path="res://art/wild_frogs/animations/frog_02_blue/sprite_frames.tres" id="6_h30hv"]
+[ext_resource type="Texture2D" uid="uid://b76hkmfbe5i20" path="res://art/wild_frogs/sprites/frog_02_blue.png" id="7_crqa1"]
 
 [resource]
 script = ExtResource("5_hchrg")
 unit_name = "Frogman"
-texture = ExtResource("6_p0yr5")
+texture = ExtResource("7_crqa1")
+sprite_frames = ExtResource("6_h30hv")
 action_points = 2
 unit_side = 1
 abilities = Array[ExtResource("1_6oj0f")]([ExtResource("2_h30hv"), ExtResource("3_crqa1"), ExtResource("4_w6qt8")])

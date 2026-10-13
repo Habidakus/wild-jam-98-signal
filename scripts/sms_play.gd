@@ -76,7 +76,7 @@ func enter_state() -> void:
 	var frogman_resource: Unit = load("res://data/units/frogman.tres")
 	for i in range(0, 3):
 		var unit_graphic: UnitGraphic = unit_scene.instantiate()
-		unit_graphic.set_unit(frogman_resource)
+		unit_graphic.set_unit(frogman_resource, true)
 		_place_object(unit_graphic, _find_unoccupied_space_near(_start_spot))
 		unit_graphic.set_facing(Vector2i.RIGHT)
 	
