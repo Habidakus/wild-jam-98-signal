@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dptfflminqu40"]
+
+[ext_resource type="Script" uid="uid://divpgo10tx3v2" path="res://scripts/map_object_graphic.gd" id="1_mvncv"]
+[ext_resource type="Texture2D" uid="uid://ceenp4u5th02n" path="res://art/swamp-tileset/2 Objects/2 Tree/6.png" id="2_mvncv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ra2i3"]
+size = Vector2(24, 24)
+
+[node name="Obstacle" type="Area2D" unique_id=780249689]
+script = ExtResource("1_mvncv")
+_obsticle_type = 2
+_texture = ExtResource("2_mvncv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=619690669]
+shape = SubResource("RectangleShape2D_ra2i3")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1863628303]
+unique_name_in_owner = true
