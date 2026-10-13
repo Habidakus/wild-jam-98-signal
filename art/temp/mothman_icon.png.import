@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gfa6wrf1rnst"
-path="res://.godot/imported/cave_wall.png-691dcda272fb407f657e1b8534c57e9f.ctex"
+uid="uid://daodk3jpw6hek"
+path="res://.godot/imported/mothman_icon.png-27220c3431125b82f3808fae7878539f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/cave_wall.png"
-dest_files=["res://.godot/imported/cave_wall.png-691dcda272fb407f657e1b8534c57e9f.ctex"]
+source_file="res://art/temp/mothman_icon.png"
+dest_files=["res://.godot/imported/mothman_icon.png-27220c3431125b82f3808fae7878539f.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhkusd4y1dv7t"
-path="res://.godot/imported/frogman_tmp.png-db643010b7458e433a8eb77e3c458344.ctex"
+uid="uid://batrjvsvek7mo"
+path="res://.godot/imported/gold_square.png-b585216bb68c2f40b1b2aa724ee66a82.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/frogman_tmp.png"
-dest_files=["res://.godot/imported/frogman_tmp.png-db643010b7458e433a8eb77e3c458344.ctex"]
+source_file="res://art/temp/gold_square.png"
+dest_files=["res://.godot/imported/gold_square.png-b585216bb68c2f40b1b2aa724ee66a82.ctex"]
 
 [params]
 

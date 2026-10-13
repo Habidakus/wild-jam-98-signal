@@ -1,41 +1,41 @@
 [gd_resource type="TileSet" format=3 uid="uid://btpbefeyvvie0"]
 
-[ext_resource type="Texture2D" uid="uid://b4ekotdsmsraw" path="res://art/brown_square.png" id="1_d0evh"]
-[ext_resource type="Texture2D" uid="uid://gfa6wrf1rnst" path="res://art/cave_wall.png" id="2_i0igk"]
-[ext_resource type="Texture2D" uid="uid://0b5gxpvcbj3e" path="res://art/red_square.png" id="2_uxnla"]
-[ext_resource type="Texture2D" uid="uid://ssdvn4sgamkv" path="res://art/blue_square.png" id="4_e118e"]
-[ext_resource type="Texture2D" uid="uid://csvgl74hubyun" path="res://art/green_square.png" id="5_awg6v"]
-[ext_resource type="Texture2D" uid="uid://batrjvsvek7mo" path="res://art/gold_square.png" id="6_y21f1"]
+[ext_resource type="Texture2D" uid="uid://b4ekotdsmsraw" path="res://art/temp/brown_square.png" id="1_e118e"]
+[ext_resource type="Texture2D" uid="uid://gfa6wrf1rnst" path="res://art/temp/cave_wall.png" id="2_awg6v"]
+[ext_resource type="Texture2D" uid="uid://0b5gxpvcbj3e" path="res://art/temp/red_square.png" id="3_y21f1"]
+[ext_resource type="Texture2D" uid="uid://ssdvn4sgamkv" path="res://art/temp/blue_square.png" id="4_w8rck"]
+[ext_resource type="Texture2D" uid="uid://csvgl74hubyun" path="res://art/temp/green_square.png" id="5_sswy1"]
+[ext_resource type="Texture2D" uid="uid://batrjvsvek7mo" path="res://art/temp/gold_square.png" id="6_y1133"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gdi7g"]
 resource_name = "Walkable Dirt"
-texture = ExtResource("1_d0evh")
+texture = ExtResource("1_e118e")
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_mbc1u"]
-texture = ExtResource("2_i0igk")
+texture = ExtResource("2_awg6v")
 0:0/0 = 0
 1:0/0 = 0
 2:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4wqad"]
 resource_name = "Lava"
-texture = ExtResource("2_uxnla")
+texture = ExtResource("3_y21f1")
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_w8rck"]
 resource_name = "Water"
-texture = ExtResource("4_e118e")
+texture = ExtResource("4_w8rck")
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sswy1"]
 resource_name = "Grass"
-texture = ExtResource("5_awg6v")
+texture = ExtResource("5_sswy1")
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_y1133"]
 resource_name = "Treasure"
-texture = ExtResource("6_y21f1")
+texture = ExtResource("6_y1133")
 0:0/0 = 0
 
 [resource]

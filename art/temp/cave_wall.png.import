@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4ekotdsmsraw"
-path="res://.godot/imported/brown_square.png-6593a49f1a64151891b7df8241d56058.ctex"
+uid="uid://gfa6wrf1rnst"
+path="res://.godot/imported/cave_wall.png-3d8d75492825dc13947f4fb29c92f4c9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/brown_square.png"
-dest_files=["res://.godot/imported/brown_square.png-6593a49f1a64151891b7df8241d56058.ctex"]
+source_file="res://art/temp/cave_wall.png"
+dest_files=["res://.godot/imported/cave_wall.png-3d8d75492825dc13947f4fb29c92f4c9.ctex"]
 
 [params]
 
