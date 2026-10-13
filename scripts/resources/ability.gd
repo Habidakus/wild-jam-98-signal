@@ -1,7 +1,7 @@
 class_name Ability extends Resource
 
 enum AbilityTarget { UNDEFINED, SELF, ALLY, FOE }
-enum AbilityMechanism { UNDEFINED, DAMAGE, PULL, WALK, HOP, FLY, ILLUMINATE }
+enum AbilityMechanism { UNDEFINED, DAMAGE, PULL, WALK, HOP, FLY, ILLUMINATE, DIE_IN_LIGHT, STUN_IN_LIGHT }
 
 @export var ability_name: String
 @export var ap_cost: int = 1

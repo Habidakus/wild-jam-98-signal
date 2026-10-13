@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_foxvg"]
 [ext_resource type="Resource" uid="uid://k2br2mwn2fx3" path="res://data/abilities/fly_mothman.tres" id="2_hi1bn"]
+[ext_resource type="Resource" uid="uid://tor1qkom4k40" path="res://data/abilities/die_in_light_mothman.tres" id="3_jetp5"]
 [ext_resource type="Texture2D" uid="uid://daodk3jpw6hek" path="res://art/temp/mothman_icon.png" id="3_rtri0"]
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_27lbc"]
 
@@ -10,7 +11,5 @@ script = ExtResource("5_27lbc")
 unit_name = "Mothman"
 texture = ExtResource("3_rtri0")
 unit_side = 2
-lose_ap_in_light = true
-light_damage_threshold = 1
-abilities = Array[ExtResource("1_foxvg")]([ExtResource("2_hi1bn")])
+abilities = Array[ExtResource("1_foxvg")]([ExtResource("2_hi1bn"), ExtResource("3_jetp5")])
 metadata/_custom_type_script = "uid://cobklneaf4pkw"
