@@ -7,7 +7,7 @@ enum AbilityMechanism { UNDEFINED, DAMAGE, PULL, WALK, HOP, FLY, ILLUMINATE }
 @export var ap_cost: int = 1
 @export var ability_description: String
 @export var target: AbilityTarget = AbilityTarget.FOE
-@export var range: int = 1
+@export var ability_range: int = 1
 @export var mechanism: AbilityMechanism = AbilityMechanism.UNDEFINED
 @export var always_on: bool = false
 @export var angle: float = -1

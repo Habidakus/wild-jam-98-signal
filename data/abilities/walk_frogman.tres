@@ -6,6 +6,6 @@
 script = ExtResource("1_ygidl")
 ability_name = "Move"
 target = 1
-range = 6
+ability_range = 6
 mechanism = 3
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"
