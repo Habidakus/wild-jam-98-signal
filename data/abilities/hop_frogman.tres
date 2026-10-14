@@ -1,10 +1,12 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://gri8rt877fo2"]
 
+[ext_resource type="AudioStream" uid="uid://c7vwvpccm6fc3" path="res://sounds/Movement and Actions Jump 007.wav" id="1_5f7f2"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_j4sp0"]
 
 [resource]
 script = ExtResource("1_j4sp0")
 ability_name = "Hop"
+activation_sound = ExtResource("1_5f7f2")
 target = 1
 ability_range = 3
 mechanism = 4

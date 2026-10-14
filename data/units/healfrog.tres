@@ -13,6 +13,7 @@ script = ExtResource("5_hchrg")
 unit_name = "Frogman"
 texture = ExtResource("7_h30hv")
 sprite_frames = ExtResource("6_h30hv")
+unit_description = "Heal Frog just wants to help."
 action_points = 2
 unit_side = 1
 hit_points = 10
