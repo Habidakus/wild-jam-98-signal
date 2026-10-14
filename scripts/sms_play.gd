@@ -67,12 +67,30 @@ func enter_state() -> void:
 			else:
 				var atlas: Vector2i = Vector2i(randi() % 3, 0)
 				%TerrainLayer.set_cell(loc, 1, atlas)
-	var a_spot: Vector2i = _find_a_spot()
-	_start_spot = _find_farthest_spot([a_spot])
-	var start_marker_scene: PackedScene = load("res://scenes/markers/start_marker.tscn")
-	var start_marker_instance: Node2D = start_marker_scene.instantiate()
-	_place_object(start_marker_instance, _start_spot)
-	start_marker_instance.hide()
+	
+	_start_spot = Vector2i.ZERO
+	_end_spot = Vector2i.ZERO
+	var has_loot: bool = false
+	for child: Node in %TerrainLayer.get_children():
+		if child.has_meta("marker"):
+			var marker: String = child.get_meta("marker")
+			if marker == "start":
+				_start_spot = %TerrainLayer.local_to_map(child.position)
+				child.hide()
+			elif marker == "end":
+				_end_spot = %TerrainLayer.local_to_map(child.position)
+			elif marker == "loot":
+				has_loot = true
+			else:
+				print("UNKNOWN marker in map: %s" % [marker])
+	
+	if _start_spot == Vector2i.ZERO:
+		var a_spot: Vector2i = _find_a_spot()
+		_start_spot = _find_farthest_spot([a_spot])
+		var start_marker_scene: PackedScene = load("res://maps/objects/start_marker.tscn")
+		var start_marker_instance: Node2D = start_marker_scene.instantiate()
+		_place_object(start_marker_instance, _start_spot)
+		start_marker_instance.hide()
 
 	var facing: Vector2i = Vector2i.RIGHT
 	for frogman_resource in [load("res://data/units/explorefrog.tres"), load("res://data/units/speedfrog.tres"), load("res://data/units/unicornfrog.tres")]:
@@ -80,18 +98,22 @@ func enter_state() -> void:
 		facing = Vector2i(- facing.y, facing.x) # rotate 90 degrees
 	_play_state = PlayState.SETUP_COMMAND
 	
-	_end_spot = _find_farthest_spot([_start_spot])
-	var end_marker: PackedScene = load("res://scenes/markers/end_marker.tscn")
-	_place_object(end_marker.instantiate() as Node2D, _end_spot)
-	var path: Array[Vector2i] = []
-	for p: Vector2i in _get_path(_start_spot, _end_spot):
-		path.append(p)
-	var treasure_spot_a: Vector2i = _find_farthest_spot(path)
-	var loot_marker: PackedScene = load("res://scenes/markers/loot_marker.tscn")
-	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_a)
-	path.append(treasure_spot_a)
-	var treasure_spot_b: Vector2i = _find_farthest_spot(path)
-	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
+	if _end_spot == Vector2i.ZERO:
+		_end_spot = _find_farthest_spot([_start_spot])
+		var end_marker: PackedScene = load("res://maps/objects/end_marker.tscn")
+		_place_object(end_marker.instantiate() as Node2D, _end_spot)
+	
+	if not has_loot:
+		var path: Array[Vector2i] = []
+		for p: Vector2i in _get_path(_start_spot, _end_spot):
+			path.append(p)
+		var treasure_spot_a: Vector2i = _find_farthest_spot(path)
+		var loot_marker: PackedScene = load("res://maps/objects/loot_marker.tscn")
+		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_a)
+		path.append(treasure_spot_a)
+		var treasure_spot_b: Vector2i = _find_farthest_spot(path)
+		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
+	
 	_update_fog_of_war()
 
 

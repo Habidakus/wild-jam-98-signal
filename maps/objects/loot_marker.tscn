@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://ct1uspbj72sy6"]
 
-[ext_resource type="Script" uid="uid://biqiwu1jkb76b" path="res://scripts/loot_marker.gd" id="1_60l2m"]
+[ext_resource type="Script" uid="uid://biqiwu1jkb76b" path="res://scripts/loot_marker.gd" id="1_dcoio"]
 
 [node name="LootMarker" type="Node2D" unique_id=287536599]
-script = ExtResource("1_60l2m")
+script = ExtResource("1_dcoio")
+metadata/marker = "loot"
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1566878859]
 anchors_preset = 8

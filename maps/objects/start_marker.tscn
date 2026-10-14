@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://caujxw65a7jl3"]
 
 [node name="StartMarker" type="Node2D" unique_id=287536599]
+metadata/marker = "start"
 
 [node name="Label" type="Label" parent="." unique_id=26822001]
 anchors_preset = 8
