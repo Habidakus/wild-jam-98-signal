@@ -74,7 +74,6 @@ func enter_state() -> void:
 	_place_object(start_marker_instance, _start_spot)
 	start_marker_instance.hide()
 
-	#var frogman_resource: Unit = load("res://data/units/frogman.tres")
 	var facing: Vector2i = Vector2i.RIGHT
 	for frogman_resource in [load("res://data/units/explorefrog.tres"), load("res://data/units/speedfrog.tres"), load("res://data/units/unicornfrog.tres")]:
 		_add_unit(frogman_resource, _find_unoccupied_space_near(_start_spot), facing)
