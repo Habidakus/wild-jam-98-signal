@@ -31,8 +31,6 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 92
-text = "Batrachain
-Urban
-Signal
-Corp"
+text = "Toad Tactics:
+Signal Corps"
 horizontal_alignment = 1
