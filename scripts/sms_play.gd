@@ -1,6 +1,10 @@
 class_name Play extends StateMachineState
 
 
+enum PlayState { UNDEFINED, SETUP_COMMAND, AWAITING_COMMAND, ANIMATING_COMMAND }
+
+
+var _play_state: PlayState = PlayState.UNDEFINED
 var _seen_cells: Dictionary[int,bool] = {}
 var _walls: Dictionary[int, bool] = {}
 var _max_x: int = 70
@@ -10,7 +14,7 @@ var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
 
 
-const _footstep_time: float = 0.66
+#const _footstep_time: float = 0.66
 
 
 func enter_state() -> void:
@@ -70,9 +74,12 @@ func enter_state() -> void:
 	_place_object(start_marker_instance, _start_spot)
 	start_marker_instance.hide()
 
-	var frogman_resource: Unit = load("res://data/units/frogman.tres")
-	for i in range(0, 3):
-		_add_unit(frogman_resource, _find_unoccupied_space_near(_start_spot), Vector2i.RIGHT)
+	#var frogman_resource: Unit = load("res://data/units/frogman.tres")
+	var facing: Vector2i = Vector2i.RIGHT
+	for frogman_resource in [load("res://data/units/explorefrog.tres"), load("res://data/units/speedfrog.tres"), load("res://data/units/unicornfrog.tres")]:
+		_add_unit(frogman_resource, _find_unoccupied_space_near(_start_spot), facing)
+		facing = Vector2i(- facing.y, facing.x) # rotate 90 degrees
+	_play_state = PlayState.SETUP_COMMAND
 	
 	_end_spot = _find_farthest_spot([_start_spot])
 	var end_marker: PackedScene = load("res://scenes/markers/end_marker.tscn")
@@ -87,15 +94,6 @@ func enter_state() -> void:
 	var treasure_spot_b: Vector2i = _find_farthest_spot(path)
 	_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
 	_update_fog_of_war()
-
-
-func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
-	var unit_scene: PackedScene = load("res://scenes/units/test.tscn")
-	var unit_graphic: UnitGraphic = unit_scene.instantiate()
-	unit_graphic.set_unit(unit, true)
-	_place_object(unit_graphic, spot)
-	unit_graphic.set_facing(facing)
-	_unit_list.append([unit_graphic, facing, _find_a_spot(), randf() * _footstep_time])
 
 
 func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
@@ -130,32 +128,100 @@ func _ready() -> void:
 	pass
 
 
+func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
+	var unit_scene: PackedScene = load("res://scenes/units/unit_graphic.tscn")
+	var unit_graphic: UnitGraphic = unit_scene.instantiate()
+	unit_graphic.set_unit(unit, true)
+	_place_object(unit_graphic, spot)
+	unit_graphic.set_facing(facing)
+	_unit_list.append([unit_graphic, facing, randf()])
+	_unit_list.sort_custom(func(a, b): return a[2] < b[2])
+
+
 func _process(delta: float) -> void:
-	for entry: Array in _unit_list:
-		#[unit_graphic, facing, destination, time_until_footstep]
-		entry[3] -= delta
-		if entry[3] < 0:
-			entry[3] += _footstep_time
-			var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
-			if unit_map_loc == entry[2]:
-				entry[2] = _find_a_spot()
-			else:
-				var path: PackedVector2Array = _get_path(unit_map_loc, entry[2])
-				var next_cell: Vector2i = path[0]
-				var cell_after_that: Vector2i = path[1]
-				if path.size() == 2:
-					if next_cell == unit_map_loc:
-						next_cell = path[1]
-						cell_after_that = (next_cell - unit_map_loc) + next_cell
-				else:
-					assert(path.size() > 2)
-					if next_cell == unit_map_loc:
-						next_cell = path[1]
-						cell_after_that = path[2]
-				entry[0].position = %TerrainLayer.map_to_local(next_cell)
-				var facing: Vector2i = cell_after_that - next_cell
-				entry[0].set_facing(facing)
-				entry[1] = facing
+	#[unit_graphic, facing, initiative]
+	var current_entry: Array = _unit_list[0]
+	match _play_state:
+		PlayState.SETUP_COMMAND:
+			_process_setup_command(delta, current_entry[0], current_entry[1])
+		PlayState.AWAITING_COMMAND:
+			_process_awaiting_command(delta, current_entry[0], current_entry[1])
+		PlayState.ANIMATING_COMMAND:
+			_process_animating_command(delta, current_entry[0], current_entry[1])
+		_:
+			assert(false, "Bad Play State: %s" % [_play_state])
+
+
+func _process_animating_command(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
+	%PlayerControlls.hide()
+
+
+func _clear_ability_bar() -> void:
+	for child: Node in %PlayerControlls.get_children():
+		if child.has_meta("ability_order"):
+			%PlayerControlls.remove_child(child)
+			child.queue_free()
+
+
+func _add_ability_to_bar(ability: Ability) -> void:
+	var max_order: int = -1
+	for child: Node in %PlayerControlls.get_children():
+		if child.has_meta("ability_order"):
+			var ao: int = child.get_meta("ability_order")
+			if ao > max_order:
+				max_order = ao
+
+	if max_order != -1:
+		var control: Control = Control.new()
+		control.custom_minimum_size.x = 12
+		control.set_meta("ability_order", max_order + 1)
+		%PlayerControlls.add_child(control) 
+		%PlayerControlls.move_child(control, max_order + 1)
+		max_order += 1
+
+	var button: Button = Button.new()
+	button.text = ability.ability_name
+	button.set_meta("ability_order", max_order + 1)
+	%PlayerControlls.add_child(button)
+	%PlayerControlls.move_child(button, max_order + 1)
+
+
+func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
+	%PlayerControlls.show()
+	_clear_ability_bar()
+	for ability: Ability in ug.get_abilities():
+		if ability.always_on == true:
+			continue
+		_add_ability_to_bar(ability)
+	_play_state = PlayState.AWAITING_COMMAND
+
+
+func _process_awaiting_command(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
+	%PlayerControlls.show()
+	#for entry: Array in _unit_list:
+		#entry[3] -= delta
+		#if entry[3] < 0:
+			##entry[3] += _footstep_time
+			#var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
+			#if unit_map_loc == entry[2]:
+				#entry[2] = _find_a_spot()
+			#else:
+				#var path: PackedVector2Array = _get_path(unit_map_loc, entry[2])
+				#var next_cell: Vector2i = path[0]
+				#var cell_after_that: Vector2i = path[1]
+				#if path.size() == 2:
+					#if next_cell == unit_map_loc:
+						#next_cell = path[1]
+						#cell_after_that = (next_cell - unit_map_loc) + next_cell
+				#else:
+					#assert(path.size() > 2)
+					#if next_cell == unit_map_loc:
+						#next_cell = path[1]
+						#cell_after_that = path[2]
+				#entry[0].position = %TerrainLayer.map_to_local(next_cell)
+				##var facing: Vector2i = cell_after_that - next_cell
+				#entry[0].set_facing(facing)
+				#entry[1] = facing
 	_update_fog_of_war()
 
 

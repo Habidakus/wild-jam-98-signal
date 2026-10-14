@@ -41,6 +41,10 @@ func set_facing(facing: Vector2i) -> void:
 		print("ERROR: Bad facing %s for %s" % [str(facing), _unit_stats.unit_name])
 
 
+func get_abilities() -> Array[Ability]:
+	return _unit_stats.abilities
+
+
 func get_illumination_ability() -> Ability:
 	for ability: Ability in _unit_stats.abilities:
 		if ability.mechanism == Ability.AbilityMechanism.ILLUMINATE:
