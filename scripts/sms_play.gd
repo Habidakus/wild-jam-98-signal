@@ -16,6 +16,7 @@ var _unit_list: Array[Array] = []
 const DEATH_TIME: float = 0.25
 const TURN_TIME: float = 0.5
 const HOP_TIME: float = 0.5
+const CHARGE_TIME: float = 0.33
 const HOP_SOURCE_ID: int = 0
 const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
 const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
@@ -231,8 +232,8 @@ func _process(delta: float) -> void:
 
 func _advance_to_next_unit() -> void:
 	var f = _unit_list.pop_front()
-	if f.is_dead():
-		f.queue_free()
+	if f[0].is_dead():
+		f[0].queue_free()
 	else:
 		_unit_list.append(f)
 	_play_state = PlayState.SETUP_COMMAND
@@ -300,20 +301,24 @@ func _on_pass() -> void:
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
-func _die() -> void:
+func _kill(target: UnitGraphic) -> void:
 	%AbilityLayer.clear()
+	var delay: float = DEATH_TIME
 	if _selected_ability != null:
 		var ug: UnitGraphic = _get_current_unit_graphic()
-		var delay: float = DEATH_TIME
 		if _selected_ability.activation_sound != null:
 			ug.play_sound(_selected_ability.activation_sound)
 			delay += _selected_ability.activation_sound.get_length()
-		_animation_tween = create_tween()
-		_animation_tween.tween_interval(delay)
-		ug.set_dead()
+	_animation_tween.tween_interval(delay)
+	target.set_dead()
 	_selected_ability = null
 	_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND
+
+
+func _die() -> void:
+	_animation_tween = create_tween()
+	_kill(_get_current_unit_graphic())
 
 
 func _on_center() -> void:
@@ -340,8 +345,6 @@ func _on_center() -> void:
 
 
 func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
-	_on_center()
-	%PlayerControlls.show()
 	_selected_ability = null
 	_ap_remaining = ug._unit_stats.action_points
 	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
@@ -352,13 +355,197 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	if die_in_light:
 		_die()
 		return
-	_clear_ability_bar()
-	var abilities: Array[Ability] = ug.get_abilities()
-	for ability_index: int in range(0, abilities.size()):
-		if abilities[ability_index].always_on == true:
+	
+	var abilities: Array[Ability] = []
+	for ability: Ability in ug.get_abilities():
+		if not ability.always_on:
+			abilities. append(ability)
+	if ug._unit_stats.unit_side == Unit.UnitSide.FROG:
+		_on_center()
+		%PlayerControlls.show()
+		_clear_ability_bar()
+		for ability_index: int in range(0, abilities.size()):
+			_add_ability_to_bar(abilities[ability_index], ability_index)
+		_play_state = PlayState.AWAITING_COMMAND_SELECTION
+	else:
+		_pick_moth_ability(abilities)
+
+
+func _pick_moth_ability(abilities: Array[Ability]) -> void:
+	Ability.sort_abilities_by_moth_priority(abilities)
+	for ability: Ability in abilities:
+		if _try_do_moth_ability(ability):
+			return
+	_on_pass()
+
+
+func _get_all_units_of_a_side(filter_side: Unit.UnitSide) -> Array[UnitGraphic]:
+	var ret_val: Array[UnitGraphic] = []
+	for entry: Array in _unit_list:
+		var ug: UnitGraphic = entry[0]
+		if ug._unit_stats.unit_side == filter_side:
+			ret_val.append(ug)
+	return ret_val
+
+
+enum PathLogic { UNDEFINED, DIRECT_FIRE, DIRECT_RUN, DIRECT_FLY }
+func _try_get_path(start: Vector2i, end: Vector2i, path_range: int, path_logic: PathLogic, ignore_nodes: Array[Node], avoid_light: bool) -> Array[Vector2i]:
+	match path_logic:
+		PathLogic.DIRECT_FIRE:
+			return _try_get_path_direct_fire(start, end, path_range, ignore_nodes, avoid_light)
+		PathLogic.DIRECT_RUN:
+			return _try_get_path_direct_travel(start, end, path_range, ignore_nodes, avoid_light, false)
+		PathLogic.DIRECT_FLY:
+			return _try_get_path_direct_travel(start, end, path_range, ignore_nodes, avoid_light, true)
+	print("Unknown PathLogic in _try_get_path(%s)" % [PathLogic.keys()[path_logic]])
+	return []
+
+
+func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: int, ignore_nodes: Array[Node], avoid_light: bool, fly: bool) -> Array[Vector2i]:
+	var visited: Dictionary[Vector2i, Array] = {}
+	visited[start] = []
+	for dist: int in range(0, search_range):
+		for map_loc: Vector2i in visited.keys():
+			if visited[map_loc].size() != dist:
+				continue
+			for dir: Vector2i in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+				var next_loc: Vector2i = dir + map_loc
+				if next_loc == end:
+					var ret_val: Array[Vector2i] = []
+					for step: Vector2i in visited[map_loc]:
+						ret_val.append(step)
+					ret_val.append(next_loc)
+					return ret_val
+				if visited.has(next_loc):
+					continue
+				var next_coord: int = next_loc.x * _max_y + next_loc.y
+				if _walls[next_coord]:
+					continue
+				if avoid_light:
+					if %FogOfWarLayer.get_cell_atlas_coords(next_loc).x < 3:
+						continue
+				var o: Node = _get_child_at(map_loc)
+				if o != null:
+					if not ignore_nodes.has(o):
+						if (o is MapObjectGraphic):
+							if fly and (o as MapObjectGraphic).blocks_fly():
+								continue
+							elif not fly and (o as MapObjectGraphic).blocks_walk():
+								continue
+						elif (o is UnitGraphic):
+							continue
+				var next_path: Array[Vector2i] = []
+				for step: Vector2i in visited[map_loc]:
+					next_path.append(step)
+				next_path.append(next_loc)
+				visited[next_loc] = next_path
+	return []
+
+
+func _try_get_path_direct_fire(start: Vector2i, end: Vector2i, path_range: int, ignore_nodes: Array[Node], avoid_light: bool) -> Array[Vector2i]:
+	var ret_val: Array[Vector2i] = []
+	for map_loc: Vector2i in _calculate_bresenham_path(start, end):
+		if map_loc == start:
 			continue
-		_add_ability_to_bar(abilities[ability_index], ability_index)
-	_play_state = PlayState.AWAITING_COMMAND_SELECTION
+		if map_loc == end:
+			if ret_val.size() <= path_range:
+				ret_val.append(end)
+				return ret_val
+			else:
+				return []
+		var map_coord: int = map_loc.x * _max_y + map_loc.y
+		if _walls[map_coord]:
+			return []
+		if avoid_light:
+			if %FogOfWarLayer.get_cell_atlas_coords(map_loc).x < 3:
+				return []
+		var o: Node = _get_child_at(map_loc)
+		if o != null:
+			if not ignore_nodes.has(o):
+				if (o is MapObjectGraphic):
+					if (o as MapObjectGraphic).blocks_fly():
+						return []
+				elif (o is UnitGraphic):
+					return []
+		if ret_val.size() <= path_range:
+			ret_val.append(map_loc)
+		else:
+			return []
+	if ret_val.size() <= path_range:
+		return ret_val
+	else:
+		return []
+
+
+func _calculate_bresenham_path(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+	var ret_val: Array[Vector2i] = []
+	var dx: int = abs(end.x - start.x)
+	var dy: int = abs(end.y - start.y)
+	var sx: int = 1 if start.x < end.x else -1
+	var sy: int = 1 if start.y < end.y else -1
+	var e1: int = dx - dy
+	while start != end:
+		var e2: int = 2 * e1
+		var changed: bool = false
+		if e2 > -dy:
+			e1 -= dy
+			start += Vector2i(sx, 0)
+			changed = true
+		if e2 < dx:
+			e1 += dx
+			start += Vector2i(0, sy)
+			changed = true
+		if changed:
+			ret_val.append(start)
+	return ret_val
+
+
+func _try_do_moth_ability(ability: Ability) -> bool:
+	var moth: UnitGraphic = _get_current_unit_graphic()
+	var moth_map_loc: Vector2i = %TerrainLayer.local_to_map(moth.position)
+	var all_frogs: Array[UnitGraphic] = _get_all_units_of_a_side(Unit.UnitSide.FROG)
+	match ability.mechanism:
+		Ability.AbilityMechanism.DAMAGE:
+			for frog: UnitGraphic in all_frogs:
+				var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
+				if not _try_get_path(moth_map_loc, frog_map_loc, ability.ability_range, PathLogic.DIRECT_FIRE, [frog], false).is_empty():
+					_play_state = PlayState.ANIMATING_COMMAND
+					moth.start_attack_animation()
+					_ap_remaining -= _selected_ability.ap_cost
+					_animation_tween = create_tween()
+					_kill(frog)
+					return true
+			return false
+		Ability.AbilityMechanism.CHARGE:
+			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, false)
+		Ability.AbilityMechanism.CHARGE_WITH_FLY:
+			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, true)
+		#Ability.AbilityMechanism.PULL:
+		#Ability.AbilityMechanism.FLY:
+		#Ability.AbilityMechanism.WALK:
+		#Ability.AbilityMechanism.HOP:
+		#Ability.AbilityMechanism.RIBBIT_RADAR:
+		#Ability.AbilityMechanism.ILLUMINATE:
+		#Ability.AbilityMechanism.STUN_IN_LIGHT:
+		#Ability.AbilityMechanism.DIE_IN_LIGHT:
+	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [Ability.AbilityMechanism.keys()[ability.mechanism]])
+	return false
+
+
+func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
+	for frog: UnitGraphic in all_frogs:
+		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
+		var path_logic: PathLogic = PathLogic.DIRECT_FLY if fly else PathLogic.DIRECT_RUN
+		var path: Array[Vector2i] = _try_get_path(moth_map_loc, frog_map_loc, ability.ability_range, path_logic, [frog], true)
+		if not path.is_empty():
+			_play_state = PlayState.ANIMATING_COMMAND
+			_ap_remaining -= _selected_ability.ap_cost
+			_animation_payload = [path]
+			_animation_tween = create_tween()
+			_animation_tween.tween_method(_animate_charge, 0.0, 1.0, CHARGE_TIME * path.size())
+			_kill(frog)
+			return true
+	return false
 
 
 func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, facing: Vector2i) -> void:
@@ -452,21 +639,27 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 			elif full_path[full_path.size() - 1] != closest_map_loc_to_mouse:
 				full_path.append(closest_map_loc_to_mouse)
 			_animation_payload = [ug_map_loc, facing, full_path, final_facing]
-			#var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
-			#delta = delta / delta.length()
-			#if delta != facing:
-				#if delta + facing == Vector2i.ZERO:
-					#var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
-					#if randi() % 2 == 0:
-						#mid = mid * Vector2i(-1, -1)
-					#_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
-					#_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
-				#else:
-					#_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
 			_animation_tween.tween_method(_animate_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
 			_animation_tween.tween_callback(_animate_walk.bind(2.0))
-			#_animation_tween.tween_callback(_animate_hop.bind(2.0))
 			_play_state = PlayState.ANIMATING_COMMAND
+
+
+func _animate_charge(fraction: float) -> void:
+	# TODO: Rather than an array of vectors, the mouse path should be an array of actions either:
+	# a) move single cell in a cardinal direction
+	# b) turn to another setting
+	# Then we can spend time turning and animate moving
+	var path: Array = _animation_payload[2]
+	var path_size: int = path.size()
+	var index: int = int(clamp(0, path_size - 1, float(path_size) * fraction))
+	var ug: UnitGraphic = _get_current_unit_graphic()
+	var current_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
+	var map_loc: Vector2i = path[index]
+	if current_map_loc != map_loc:
+		var dir: Vector2i = map_loc - current_map_loc
+		_update_current_unit_facing(dir)
+	ug.position = %TerrainLayer.map_to_local(map_loc)
+	_update_fog_of_war()
 
 
 func _animate_walk(fraction: float) -> void:
@@ -685,25 +878,25 @@ func _find_farthest_spot(from: Array[Vector2i]) -> Vector2i:
 			if dist[coord] != max_dist:
 				continue
 			var up: int = coord - 1
-			if not _walls[up] and not dist.has(up):
+			if not _walls[up] and not dist.has(up) and _coord_has_source_id(up):
 				dist[up] = max_dist + 1
 				if not _has_wall_neighbors(up):
 					possible_locs.append(up)
 				completed = false
 			var down: int = coord + 1
-			if not _walls[down] and not dist.has(down):
+			if not _walls[down] and not dist.has(down) and _coord_has_source_id(down):
 				dist[down] = max_dist + 1
 				if not _has_wall_neighbors(down):
 					possible_locs.append(down)
 				completed = false
 			var left: int = coord - _max_y
-			if not _walls[left] and not dist.has(left):
+			if not _walls[left] and not dist.has(left) and _coord_has_source_id(left):
 				dist[left] = max_dist + 1
 				if not _has_wall_neighbors(left):
 					possible_locs.append(left)
 				completed = false
 			var right: int = coord + _max_y
-			if not _walls[right] and not dist.has(right):
+			if not _walls[right] and not dist.has(right) and _coord_has_source_id(right):
 				dist[right] = max_dist + 1
 				if not _has_wall_neighbors(right):
 					possible_locs.append(right)
@@ -714,6 +907,11 @@ func _find_farthest_spot(from: Array[Vector2i]) -> Vector2i:
 				final_locs = possible_locs
 	var coord: int = final_locs[randi() % final_locs.size()]
 	return Vector2i(int(coord / float(_max_y)), coord % _max_y)
+
+
+func _coord_has_source_id(coord: int) -> bool:
+	var map_loc: Vector2i = Vector2i(int(coord / float(_max_y)), coord % _max_y)
+	return (%TerrainLayer as TileMapLayer).get_cell_source_id(map_loc) != -1
 
 
 func _has_wall_neighbors(coord: int) -> bool:
@@ -738,9 +936,12 @@ func _find_a_spot() -> Vector2i:
 				continue
 			if _has_wall_neighbors(i):
 				continue
+			var map_loc: Vector2i = Vector2i(x, y)
+			if (%TerrainLayer as TileMapLayer).get_cell_source_id(map_loc) == -1:
+				continue
 			seen += 1
 			if seen < 2 or (randi() % seen) == 1:
-				ret_val = Vector2i(x, y)
+				ret_val = map_loc
 	return ret_val
 
 
