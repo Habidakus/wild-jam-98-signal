@@ -342,6 +342,9 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 			_await_mouse_release = false
 		else:
 			mouse_pressed = false
+	if mouse_pressed and get_viewport().gui_get_hovered_control() != null:
+		# Don't intercept mouse presses over valid buttons
+		mouse_pressed = false
 	if _selected_ability == null:
 		print("Why is selected ability null?")
 		return
