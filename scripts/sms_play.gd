@@ -284,12 +284,26 @@ func _on_pass() -> void:
 
 
 func _on_center() -> void:
+	var current_global_pos: Vector2 = %Camera2D.global_position
 	var local_pos: Vector2 = _get_current_unit_graphic().position
-	var global_pos: Vector2 = %TerrainLayer.to_global(local_pos)
+	var dest_global_pos: Vector2 = %TerrainLayer.to_global(local_pos)
 	if _camera_tween != null && _camera_tween.is_running():
 		_camera_tween.stop()
 	_camera_tween = create_tween()
-	_camera_tween.tween_property(%Camera2D, "global_position", global_pos, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	var delta_global_pos: Vector2 = dest_global_pos - current_global_pos
+	var first_global_pos: Vector2 = current_global_pos + delta_global_pos / 3.0
+	var second_global_pos: Vector2 = current_global_pos + 2.0 * delta_global_pos / 3.0
+	var third_global_pos: Vector2 = dest_global_pos
+	
+	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.parallel()
+	_camera_tween.tween_property(%Camera2D, "global_position", first_global_pos, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	
+	_camera_tween.tween_property(%Camera2D, "global_position", second_global_pos, 0.20)
+	
+	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 2.0, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.parallel()
+	_camera_tween.tween_property(%Camera2D, "global_position", third_global_pos, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 
 
 func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
