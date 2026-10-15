@@ -11,7 +11,9 @@ enum AbilityMechanism {
 	ILLUMINATE,		# COMPLETED
 	DIE_IN_LIGHT,	# COMPLETED
 	STUN_IN_LIGHT,	# COMPLETED
-	RIBBIT_RADAR
+	RIBBIT_RADAR,
+	CHARGE,
+	CHARGE_WITH_FLY,
 }
 
 @export var ability_name: String
@@ -23,3 +25,35 @@ enum AbilityMechanism {
 @export var mechanism: AbilityMechanism = AbilityMechanism.UNDEFINED
 @export var always_on: bool = false
 @export var angle: float = -1
+
+
+static func sort_abilities_by_moth_priority(abilities: Array[Ability]) -> void:
+	abilities.sort_custom(func(a, b): return _get_moth_priority(a.mechanism) > _get_moth_priority(b.mechanism) )
+
+
+static func _get_moth_priority(q_mechanism: AbilityMechanism) -> int:
+	match q_mechanism:
+		AbilityMechanism.DAMAGE:
+			return 100
+		AbilityMechanism.CHARGE_WITH_FLY:
+			return 95
+		AbilityMechanism.CHARGE:
+			return 90
+		AbilityMechanism.PULL:
+			return 80
+		AbilityMechanism.FLY:
+			return 70
+		AbilityMechanism.WALK:
+			return 60
+		AbilityMechanism.HOP:
+			return 50
+		AbilityMechanism.RIBBIT_RADAR:
+			return 0
+		AbilityMechanism.ILLUMINATE:
+			return -1
+		AbilityMechanism.STUN_IN_LIGHT:
+			return -2
+		AbilityMechanism.DIE_IN_LIGHT:
+			return -3
+	print("Did not expect to encounter ability mechanism %s for moths" % [AbilityMechanism.keys()[q_mechanism]])
+	return -100
