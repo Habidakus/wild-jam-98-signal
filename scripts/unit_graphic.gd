@@ -43,6 +43,15 @@ func set_facing(facing: Vector2i) -> void:
 		print("ERROR: Bad facing %s for %s" % [str(facing), _unit_stats.unit_name])
 
 
+func play_sound(sound: AudioStream) -> void:
+	%AudioStreamPlayer2D.stream = sound
+	%AudioStreamPlayer2D.play()
+
+
+func stop_sound() -> void:
+	%AudioStreamPlayer2D.stop()
+
+
 func start_idle_animation() -> void:
 	%AnimatedSprite2D.play("default")
 

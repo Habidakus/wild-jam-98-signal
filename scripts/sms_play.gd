@@ -225,11 +225,15 @@ func _advance_to_next_unit() -> void:
 	_play_state = PlayState.SETUP_COMMAND
 
 
-func _process_animating_command(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
+func _process_animating_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
 	%PlayerControlls.hide()
 	if _animation_tween != null and _animation_tween.is_running():
 		return
-	_advance_to_next_unit()
+	ug.stop_sound()
+	if _ap_remaining <= 0:
+		_advance_to_next_unit()
+	else:
+		_play_state = PlayState.AWAITING_COMMAND_SELECTION
 
 
 func _clear_ability_bar() -> void:
@@ -373,6 +377,8 @@ func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pres
 				%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
 		if mouse_pressed:
 			ug.start_hop_animation()
+			_ap_remaining -= _selected_ability.ap_cost
+			ug.play_sound(_selected_ability.activation_sound)
 			_animation_tween = create_tween()
 			_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
 			var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
