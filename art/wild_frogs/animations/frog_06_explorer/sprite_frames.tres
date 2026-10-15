@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://b0842xvvjx0ds" path="res://art/wild_frogs/animations/frog_06_explorer/frog_06_explorer_croak.png" id="1_dvd51"]
 [ext_resource type="Texture2D" uid="uid://cl7brirg0s21q" path="res://art/wild_frogs/animations/frog_06_explorer/frog_06_explorer_idle.png" id="2_okeki"]
-[ext_resource type="Texture2D" uid="uid://j434lfhggb7u" path="res://art/wild_frogs/animations/frog_02_blue/frog_02_blue_hop.png" id="3_ganvo"]
+[ext_resource type="Texture2D" uid="uid://dv5i3g6scitu6" path="res://art/wild_frogs/animations/frog_06_explorer/frog_06_explorer_hop.png" id="3_dvd51"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_x47mu"]
 atlas = ExtResource("1_dvd51")
@@ -80,25 +80,25 @@ region = Rect2(336, 19, 48, 29)
 atlas = ExtResource("2_okeki")
 region = Rect2(384, 19, 48, 29)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_o4xwl"]
-atlas = ExtResource("3_ganvo")
-region = Rect2(0, 21, 48, 27)
+[sub_resource type="AtlasTexture" id="AtlasTexture_okeki"]
+atlas = ExtResource("3_dvd51")
+region = Rect2(0, 17, 48, 31)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_yaynj"]
-atlas = ExtResource("3_ganvo")
-region = Rect2(48, 21, 48, 27)
+[sub_resource type="AtlasTexture" id="AtlasTexture_sdn15"]
+atlas = ExtResource("3_dvd51")
+region = Rect2(48, 17, 48, 31)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_mrbj3"]
-atlas = ExtResource("3_ganvo")
-region = Rect2(96, 21, 48, 27)
+[sub_resource type="AtlasTexture" id="AtlasTexture_8npv5"]
+atlas = ExtResource("3_dvd51")
+region = Rect2(96, 17, 48, 31)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_1hw8n"]
-atlas = ExtResource("3_ganvo")
-region = Rect2(144, 21, 48, 27)
+[sub_resource type="AtlasTexture" id="AtlasTexture_85usu"]
+atlas = ExtResource("3_dvd51")
+region = Rect2(144, 17, 48, 31)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_g3dgy"]
-atlas = ExtResource("3_ganvo")
-region = Rect2(192, 21, 48, 27)
+[sub_resource type="AtlasTexture" id="AtlasTexture_katlr"]
+atlas = ExtResource("3_dvd51")
+region = Rect2(192, 17, 48, 31)
 
 [resource]
 animations = [{
@@ -171,19 +171,19 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_o4xwl")
+"texture": SubResource("AtlasTexture_okeki")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_yaynj")
+"texture": SubResource("AtlasTexture_sdn15")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_mrbj3")
+"texture": SubResource("AtlasTexture_8npv5")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_1hw8n")
+"texture": SubResource("AtlasTexture_85usu")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_g3dgy")
+"texture": SubResource("AtlasTexture_katlr")
 }],
 "loop": 1,
 "name": &"hop",
