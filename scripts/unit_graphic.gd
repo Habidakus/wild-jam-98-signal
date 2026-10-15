@@ -3,6 +3,7 @@ class_name UnitGraphic extends Area2D
 
 var _unit_stats: Unit
 var _hop_frame_count: int = 0
+var _dead: bool = false
 
 
 func set_unit(stats: Unit, show_facing_element: bool) -> void:
@@ -71,6 +72,14 @@ func set_hop_animation_frame(fraction: float) -> void:
 		return
 	var frame: int = int(float(_hop_frame_count) * clamp(fraction, 0.0, 0.9999))
 	%AnimatedSprite2D.frame = frame
+
+
+func set_dead() -> void:
+	_dead = true
+
+
+func is_dead() -> bool:
+	return _dead
 
 
 func get_abilities() -> Array[Ability]:

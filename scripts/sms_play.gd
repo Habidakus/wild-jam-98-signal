@@ -13,6 +13,7 @@ var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
 
+const DEATH_TIME: float = 0.25
 const TURN_TIME: float = 0.5
 const HOP_TIME: float = 0.5
 const HOP_SOURCE_ID: int = 0
@@ -230,7 +231,10 @@ func _process(delta: float) -> void:
 
 func _advance_to_next_unit() -> void:
 	var f = _unit_list.pop_front()
-	_unit_list.append(f)
+	if f.is_dead():
+		f.queue_free()
+	else:
+		_unit_list.append(f)
 	_play_state = PlayState.SETUP_COMMAND
 
 
@@ -296,6 +300,22 @@ func _on_pass() -> void:
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
+func _die() -> void:
+	%AbilityLayer.clear()
+	if _selected_ability != null:
+		var ug: UnitGraphic = _get_current_unit_graphic()
+		var delay: float = DEATH_TIME
+		if _selected_ability.activation_sound != null:
+			ug.play_sound(_selected_ability.activation_sound)
+			delay += _selected_ability.activation_sound.get_length()
+		_animation_tween = create_tween()
+		_animation_tween.tween_interval(delay)
+		ug.set_dead()
+	_selected_ability = null
+	_ap_remaining = 0
+	_play_state = PlayState.ANIMATING_COMMAND
+
+
 func _on_center() -> void:
 	var current_global_pos: Vector2 = %Camera2D.global_position
 	var local_pos: Vector2 = _get_current_unit_graphic().position
@@ -327,6 +347,11 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
 	if stun_in_light != null:
 		_on_pass()
+		return
+	var die_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.DIE_IN_LIGHT)
+	if die_in_light:
+		_die()
+		return
 	_clear_ability_bar()
 	var abilities: Array[Ability] = ug.get_abilities()
 	for ability_index: int in range(0, abilities.size()):
@@ -451,6 +476,10 @@ func _animate_walk(fraction: float) -> void:
 		_update_current_unit_facing(final_facing)
 		_update_fog_of_war()
 		return
+	# TODO: Rather than an array of vectors, the mouse path should be an array of actions either:
+	# a) move single cell in a cardinal direction
+	# b) turn to another setting
+	# Then we can spend time turning and animate moving
 	var mouse_path: Array = _animation_payload[2]
 	var mps: int = mouse_path.size()
 	var index: int = int(clamp(0, mps - 1, float(mps) * fraction))
