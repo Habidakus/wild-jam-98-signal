@@ -56,11 +56,14 @@ func start_idle_animation() -> void:
 	%AnimatedSprite2D.play("default")
 
 
-func start_hop_animation() -> void:
+func start_hop_animation(animate: bool) -> void:
 	if _hop_frame_count == 0:
 		return
 	%AnimatedSprite2D.animation = "hop"
-	%AnimatedSprite2D.frame = 0
+	if animate:
+		%AnimatedSprite2D.play()
+	else:
+		%AnimatedSprite2D.frame = 0
 
 
 func set_hop_animation_frame(fraction: float) -> void:

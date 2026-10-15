@@ -19,6 +19,7 @@ const HOP_SOURCE_ID: int = 0
 const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
 const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
 const WALK_SOURCE_ID: int = 1
+const WALK_TIME: float = 0.5
 const WALK_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
 const WALK_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
 const WALK_ATLAS_UP: Vector2i = Vector2i(2, 0)
@@ -208,6 +209,7 @@ func _update_current_unit_facing(dir: Vector2) -> void:
 		if ddot > max_dot_value:
 			max_dot_value = ddot
 			_unit_list[0][1] = d
+	_get_current_unit_graphic().set_facing(_unit_list[0][1])
 
 
 func _process(delta: float) -> void:
@@ -412,12 +414,17 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 				best_facing = d_tupple[1]
 		if best_facing != Vector2i.MIN:
 			%AbilityLayer.set_cell(closest_map_loc_to_mouse, WALK_SOURCE_ID, best_facing)
-		#if mouse_pressed:
-			#ug.start_hop_animation()
-			#_ap_remaining -= _selected_ability.ap_cost
-			#ug.play_sound(_selected_ability.activation_sound)
-			#_animation_tween = create_tween()
-			#_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
+		if mouse_pressed:
+			ug.start_hop_animation(true)
+			_ap_remaining -= _selected_ability.ap_cost
+			ug.play_sound(_selected_ability.activation_sound)
+			_animation_tween = create_tween()
+			var full_path: Array = mouse_path.duplicate()
+			if full_path.is_empty():
+				full_path.append(closest_map_loc_to_mouse)
+			elif full_path[full_path.size() - 1] != closest_map_loc_to_mouse:
+				full_path.append(closest_map_loc_to_mouse)
+			_animation_payload = [ug_map_loc, facing, full_path, best_facing]
 			#var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
 			#delta = delta / delta.length()
 			#if delta != facing:
@@ -429,9 +436,24 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 					#_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
 				#else:
 					#_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
-			#_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
+			_animation_tween.tween_method(_animate_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
+			_animation_tween.tween_callback(_animate_walk.bind(2.0))
 			#_animation_tween.tween_callback(_animate_hop.bind(2.0))
-			#_play_state = PlayState.ANIMATING_COMMAND
+			_play_state = PlayState.ANIMATING_COMMAND
+
+
+func _animate_walk(fraction: float) -> void:
+	if fraction > 1.0:
+		# end of animation
+		var final_facing: Vector2i = _animation_payload[3]
+		_update_current_unit_facing(final_facing)
+		_update_fog_of_war()
+		return
+	var mouse_path: Array = _animation_payload[2]
+	var mps: int = mouse_path.size()
+	var index: int = int(clamp(0, mps - 1, float(mps) * fraction))
+	_get_current_unit_graphic().position = %TerrainLayer.map_to_local(mouse_path[index])
+	_update_fog_of_war()
 
 
 func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
@@ -466,7 +488,7 @@ func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pres
 			if v != closest_map_loc_to_mouse:
 				%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
 		if mouse_pressed:
-			ug.start_hop_animation()
+			ug.start_hop_animation(false)
 			_ap_remaining -= _selected_ability.ap_cost
 			ug.play_sound(_selected_ability.activation_sound)
 			_animation_tween = create_tween()
@@ -488,7 +510,7 @@ func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pres
 
 
 var _animation_tween: Tween
-var _animation_payload: Array[Vector2]
+var _animation_payload: Array
 func _animate_hop(fraction: float) -> void:
 	var ug: UnitGraphic = _get_current_unit_graphic()
 	if fraction <= 1.0:
@@ -502,7 +524,6 @@ func _animate_hop(fraction: float) -> void:
 
 func _animate_turn(dir: Vector2) -> void:
 	_update_current_unit_facing(dir)
-	_get_current_unit_graphic().set_facing(_unit_list[0][1])
 	_update_fog_of_war()
 
 
