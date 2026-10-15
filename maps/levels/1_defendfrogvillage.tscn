@@ -30,7 +30,7 @@ position = Vector2(306, 395)
 position = Vector2(337, 399)
 
 [node name="Obstacle7" parent="." unique_id=544346460 instance=ExtResource("2_gafkq")]
-position = Vector2(427, 398)
+position = Vector2(432, 400)
 
 [node name="Obstacle8" parent="." unique_id=1708450949 instance=ExtResource("2_gafkq")]
 position = Vector2(426, 366)
@@ -63,22 +63,22 @@ position = Vector2(647, 508)
 position = Vector2(630, 543)
 
 [node name="Obstacle18" parent="." unique_id=1830856036 instance=ExtResource("3_athmg")]
-position = Vector2(647, 260)
+position = Vector2(652, 262)
 
 [node name="Obstacle19" parent="." unique_id=1033384287 instance=ExtResource("3_athmg")]
-position = Vector2(647, 300)
+position = Vector2(651, 303)
 
 [node name="Obstacle20" parent="." unique_id=624820367 instance=ExtResource("3_athmg")]
-position = Vector2(650, 343)
+position = Vector2(650, 342)
 
 [node name="Obstacle21" parent="." unique_id=408421370 instance=ExtResource("4_gafkq")]
-position = Vector2(618, 213)
+position = Vector2(620, 212)
 
 [node name="Obstacle22" parent="." unique_id=865055008 instance=ExtResource("4_gafkq")]
-position = Vector2(538, 215)
+position = Vector2(534, 212)
 
 [node name="Obstacle23" parent="." unique_id=1724507131 instance=ExtResource("4_gafkq")]
-position = Vector2(535, 240)
+position = Vector2(534, 240)
 
 [node name="Obstacle24" parent="." unique_id=806827107 instance=ExtResource("3_athmg")]
 position = Vector2(462, 277)
@@ -111,7 +111,7 @@ position = Vector2(307, 110)
 position = Vector2(279, 109)
 
 [node name="Obstacle34" parent="." unique_id=1392241942 instance=ExtResource("2_gafkq")]
-position = Vector2(369, 137)
+position = Vector2(367, 141)
 
 [node name="Obstacle35" parent="." unique_id=1158391023 instance=ExtResource("2_gafkq")]
 position = Vector2(396, 85)
