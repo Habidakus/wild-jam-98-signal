@@ -1,11 +1,22 @@
 [gd_resource type="TileSet" format=3 uid="uid://d222aq3iwwhbj"]
 
 [ext_resource type="Texture2D" uid="uid://brsueh8osjnhb" path="res://art/fog_of_war/targetting.png" id="1_k27y6"]
+[ext_resource type="Texture2D" uid="uid://o54iqn7fqwtp" path="res://art/fog_of_war/walking.png" id="2_eehbt"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_eehbt"]
 texture = ExtResource("1_k27y6")
 0:0/0 = 0
 1:0/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tsbgt"]
+texture = ExtResource("2_eehbt")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+
 [resource]
 sources/0 = SubResource("TileSetAtlasSource_eehbt")
+sources/1 = SubResource("TileSetAtlasSource_tsbgt")

@@ -18,6 +18,13 @@ const HOP_TIME: float = 0.5
 const HOP_SOURCE_ID: int = 0
 const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
 const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
+const WALK_SOURCE_ID: int = 1
+const WALK_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
+const WALK_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
+const WALK_ATLAS_UP: Vector2i = Vector2i(2, 0)
+const WALK_ATLAS_RIGHT: Vector2i = Vector2i(3, 0)
+const WALK_ATLAS_DOWN: Vector2i = Vector2i(4, 0)
+const WALK_ATLAS_LEFT: Vector2i = Vector2i(5, 0)
 
 
 #const _footstep_time: float = 0.66
@@ -342,7 +349,85 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 	match _selected_ability.mechanism:
 		Ability.AbilityMechanism.HOP:
 			_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
+		Ability.AbilityMechanism.WALK:
+			_process_awaiting_walk_command(ug, facing, mouse_pressed, mouse_local_pos)
 	_update_fog_of_war()
+
+
+func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
+	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
+	var walk_path: Dictionary[Vector2i, Array] = {}
+	var closest_squared_dist_to_mouse: float = INF
+	var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
+	var closest_map_loc_delta_to_mouse: Vector2
+	walk_path[ug_map_loc] = [0, []]
+	for distance: int in range(0, _selected_ability.ability_range):
+		for map_loc: Vector2i in walk_path.keys():
+			var map_loc_dist: int = walk_path[map_loc][0]
+			if map_loc_dist == distance:
+				var map_loc_path: Array = walk_path[map_loc][1]
+				for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
+					var step_dest: Vector2i = d + map_loc
+					if %TerrainLayer.get_cell_source_id(step_dest) == -1:
+						continue
+					var step_coord: int = step_dest.x * _max_y + step_dest.y
+					if _walls[step_coord]:
+						continue
+					var child_at: Node = _get_child_at(step_dest)
+					if child_at != null:
+						if child_at is MapObjectGraphic:
+							if (child_at as MapObjectGraphic).blocks_walk():
+								continue
+					if walk_path.has(step_dest):
+						if walk_path[step_dest][0] < distance:
+							continue
+					var new_path: Array = map_loc_path.duplicate()
+					new_path.append(map_loc)
+					walk_path[step_dest] = [map_loc_dist + 1, new_path]
+					var vector_to_mouse: Vector2 = mouse_local_pos - %TerrainLayer.map_to_local(step_dest) 
+					var dist_squared_from_mouse: float = vector_to_mouse.length_squared()
+					if dist_squared_from_mouse < closest_squared_dist_to_mouse:
+						closest_map_loc_to_mouse = step_dest
+						closest_map_loc_delta_to_mouse = vector_to_mouse
+						closest_squared_dist_to_mouse = dist_squared_from_mouse
+	%AbilityLayer.clear()
+	for loc: Vector2i in walk_path.keys():
+		%AbilityLayer.set_cell(loc, WALK_SOURCE_ID, WALK_ATLAS_POTENTIAL)
+	if closest_map_loc_to_mouse != Vector2i.MIN:
+		var mouse_path: Array = walk_path[closest_map_loc_to_mouse][1]
+		for loc: Vector2i in mouse_path:
+			%AbilityLayer.set_cell(loc, WALK_SOURCE_ID, WALK_ATLAS_SELECTED)
+		var norm: Vector2 = closest_map_loc_delta_to_mouse.normalized()
+		var max_dot: float = -100.0
+		var best_facing: Vector2i = Vector2i.MIN
+		for d_tupple in [[Vector2i.UP, WALK_ATLAS_UP], [Vector2i.RIGHT, WALK_ATLAS_RIGHT], [Vector2i.DOWN, WALK_ATLAS_DOWN], [Vector2i.LEFT, WALK_ATLAS_LEFT]]:
+			var dot: float = Vector2(d_tupple[0]).dot(norm)
+			if dot > max_dot:
+				max_dot = dot
+				best_facing = d_tupple[1]
+		if best_facing != Vector2i.MIN:
+			%AbilityLayer.set_cell(closest_map_loc_to_mouse, WALK_SOURCE_ID, best_facing)
+		#if mouse_pressed:
+			#ug.start_hop_animation()
+			#_ap_remaining -= _selected_ability.ap_cost
+			#ug.play_sound(_selected_ability.activation_sound)
+			#_animation_tween = create_tween()
+			#_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
+			#var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
+			#delta = delta / delta.length()
+			#if delta != facing:
+				#if delta + facing == Vector2i.ZERO:
+					#var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
+					#if randi() % 2 == 0:
+						#mid = mid * Vector2i(-1, -1)
+					#_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
+					#_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
+				#else:
+					#_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
+			#_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
+			#_animation_tween.tween_callback(_animate_hop.bind(2.0))
+			#_play_state = PlayState.ANIMATING_COMMAND
+
 
 func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
 	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
