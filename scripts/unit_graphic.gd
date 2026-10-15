@@ -45,8 +45,8 @@ func get_abilities() -> Array[Ability]:
 	return _unit_stats.abilities
 
 
-func get_illumination_ability() -> Ability:
+func get_ability(mechanism: Ability.AbilityMechanism) -> Ability:
 	for ability: Ability in _unit_stats.abilities:
-		if ability.mechanism == Ability.AbilityMechanism.ILLUMINATE:
+		if ability.mechanism == mechanism:
 			return ability
 	return null

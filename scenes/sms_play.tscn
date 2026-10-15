@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://tbfpu72ty3qq" path="res://scripts/sms_play.gd" id="1_yc7cj"]
 [ext_resource type="TileSet" uid="uid://btpbefeyvvie0" path="res://maps/tileset_dummy.tres" id="2_x7n7y"]
 [ext_resource type="TileSet" uid="uid://c28txgsyaetma" path="res://maps/tileset_fog_of_war.tres" id="3_nw82y"]
+[ext_resource type="TileSet" uid="uid://d222aq3iwwhbj" path="res://maps/tileset_abilities.tres" id="4_s6t4g"]
 
 [node name="SMS_Play" type="Control" unique_id=191438879]
 layout_mode = 3
@@ -14,6 +15,10 @@ grow_vertical = 2
 script = ExtResource("1_yc7cj")
 metadata/_custom_type_script = "uid://bbl41p6swfbs4"
 
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1660944806]
+unique_name_in_owner = true
+position = Vector2(574, 324)
+
 [node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=381075681]
 unique_name_in_owner = true
 tile_set = ExtResource("2_x7n7y")
@@ -21,6 +26,10 @@ tile_set = ExtResource("2_x7n7y")
 [node name="FogOfWarLayer" type="TileMapLayer" parent="." unique_id=318256740]
 unique_name_in_owner = true
 tile_set = ExtResource("3_nw82y")
+
+[node name="AbilityLayer" type="TileMapLayer" parent="." unique_id=1646719952]
+unique_name_in_owner = true
+tile_set = ExtResource("4_s6t4g")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1681227209]
 
@@ -58,3 +67,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 text = "Pass"
+
+[connection signal="button_up" from="UI/PlayerControlls/CenterButton" to="." method="_on_center"]
+[connection signal="button_up" from="UI/PlayerControlls/PassButton" to="." method="_on_pass"]

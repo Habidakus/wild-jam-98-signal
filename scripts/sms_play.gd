@@ -1,7 +1,7 @@
 class_name Play extends StateMachineState
 
 
-enum PlayState { UNDEFINED, SETUP_COMMAND, AWAITING_COMMAND, ANIMATING_COMMAND }
+enum PlayState { UNDEFINED, SETUP_COMMAND, AWAITING_COMMAND_SELECTION, AWAITING_COMMAND_CONFIGURATION, ANIMATING_COMMAND }
 
 
 var _play_state: PlayState = PlayState.UNDEFINED
@@ -13,12 +13,19 @@ var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
 
+const TURN_TIME: float = 0.5
+const HOP_TIME: float = 3.0
+const HOP_SOURCE_ID: int = 0
+const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
+const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
+
 
 #const _footstep_time: float = 0.66
 
 
 func enter_state() -> void:
 	super.enter_state()
+	%Camera2D.position = size / 2.0
 	%PlayerControlls.show()
 	%TerrainLayer.clear()
 	#var noise: FastNoiseLite = FastNoiseLite.new()
@@ -67,6 +74,22 @@ func enter_state() -> void:
 			else:
 				var atlas: Vector2i = Vector2i(randi() % 3, 0)
 				%TerrainLayer.set_cell(loc, 1, atlas)
+	
+	################################
+	#var import_terrain_ps: PackedScene = load("res://maps/levels/0_tutorial.tscn")
+	#var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
+	#(%TerrainLayer as TileMapLayer).clear()
+	#(%TerrainLayer as TileMapLayer).tile_set = import_terrain.tile_set
+	#for cell_loc: Vector2i in import_terrain.get_used_cells():
+		#var source_id: int = import_terrain.get_cell_source_id(cell_loc)
+		#var atlas_coords: Vector2i = import_terrain.get_cell_atlas_coords(cell_loc)
+		#var alternative_tile: int = import_terrain.get_cell_alternative_tile(cell_loc)
+		#(%TerrainLayer as TileMapLayer).set_cell(cell_loc, source_id, atlas_coords, alternative_tile)
+	#for child: Node in import_terrain.get_children():
+		#var map_loc: Vector2i = import_terrain.local_to_map(child.position)
+		#var new_child = child.duplicate()
+		#_place_object(new_child, map_loc)
+	################################
 	
 	_start_spot = Vector2i.ZERO
 	_end_spot = Vector2i.ZERO
@@ -138,6 +161,13 @@ func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
 	return spot
 
 
+func _get_child_at(spot: Vector2i) -> Node:
+	for child: Node in %TerrainLayer.get_children():
+		if %TerrainLayer.local_to_map(child.position) == spot:
+			return child
+	return null
+
+
 func _any_children_at(spot: Vector2i) -> bool:
 	for child: Node in %TerrainLayer.get_children():
 		if %TerrainLayer.local_to_map(child.position) == spot:
@@ -155,8 +185,22 @@ func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
 	unit_graphic.set_unit(unit, true)
 	_place_object(unit_graphic, spot)
 	unit_graphic.set_facing(facing)
+	unit_graphic.z_index = 100
 	_unit_list.append([unit_graphic, facing, randf()])
 	_unit_list.sort_custom(func(a, b): return a[2] < b[2])
+
+
+func _get_current_unit_graphic() -> UnitGraphic:
+	return _unit_list[0][0]
+
+
+func _update_current_unit_facing(dir: Vector2) -> void:
+	var max_dot_value: float = -5.0
+	for d: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
+		var ddot: float = Vector2(d).dot(dir)
+		if ddot > max_dot_value:
+			max_dot_value = ddot
+			_unit_list[0][1] = d
 
 
 func _process(delta: float) -> void:
@@ -165,16 +209,27 @@ func _process(delta: float) -> void:
 	match _play_state:
 		PlayState.SETUP_COMMAND:
 			_process_setup_command(delta, current_entry[0], current_entry[1])
-		PlayState.AWAITING_COMMAND:
-			_process_awaiting_command(delta, current_entry[0], current_entry[1])
+		PlayState.AWAITING_COMMAND_SELECTION:
+			_process_awaiting_command_selection(delta, current_entry[0], current_entry[1])
+		PlayState.AWAITING_COMMAND_CONFIGURATION:
+			_process_awaiting_command_configuration(delta, current_entry[0], current_entry[1])
 		PlayState.ANIMATING_COMMAND:
 			_process_animating_command(delta, current_entry[0], current_entry[1])
 		_:
 			assert(false, "Bad Play State: %s" % [_play_state])
 
 
+func _advance_to_next_unit() -> void:
+	var f = _unit_list.pop_front()
+	_unit_list.append(f)
+	_play_state = PlayState.SETUP_COMMAND
+
+
 func _process_animating_command(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
 	%PlayerControlls.hide()
+	if _animation_tween != null and _animation_tween.is_running():
+		return
+	_advance_to_next_unit()
 
 
 func _clear_ability_bar() -> void:
@@ -184,7 +239,7 @@ func _clear_ability_bar() -> void:
 			child.queue_free()
 
 
-func _add_ability_to_bar(ability: Ability) -> void:
+func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 	var max_order: int = -1
 	for child: Node in %PlayerControlls.get_children():
 		if child.has_meta("ability_order"):
@@ -203,21 +258,135 @@ func _add_ability_to_bar(ability: Ability) -> void:
 	var button: Button = Button.new()
 	button.text = ability.ability_name
 	button.set_meta("ability_order", max_order + 1)
+	button.set_meta("ability_index", ability_index)
+	button.button_up.connect(_on_ability_selected.bind(ability))
 	%PlayerControlls.add_child(button)
 	%PlayerControlls.move_child(button, max_order + 1)
 
 
+var _selected_ability: Ability
+var _ap_remaining: int
+var _await_mouse_release: bool = false
+var _camera_tween: Tween
+func _on_ability_selected(ability: Ability) -> void:
+	%AbilityLayer.clear()
+	_selected_ability = ability
+	_play_state = PlayState.AWAITING_COMMAND_CONFIGURATION
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_await_mouse_release = true
+
+
+func _on_pass() -> void:
+	%AbilityLayer.clear()
+	_selected_ability = null
+	_ap_remaining = 0
+	_play_state = PlayState.ANIMATING_COMMAND
+
+
+func _on_center() -> void:
+	var local_pos: Vector2 = _get_current_unit_graphic().position
+	var global_pos: Vector2 = %TerrainLayer.to_global(local_pos)
+	if _camera_tween != null && _camera_tween.is_running():
+		_camera_tween.stop()
+	_camera_tween = create_tween()
+	_camera_tween.tween_property(%Camera2D, "global_position", global_pos, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+
+
 func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
+	_on_center()
 	%PlayerControlls.show()
+	_selected_ability = null
+	_ap_remaining = ug._unit_stats.action_points
+	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
+	if stun_in_light != null:
+		_on_pass()
 	_clear_ability_bar()
-	for ability: Ability in ug.get_abilities():
-		if ability.always_on == true:
+	var abilities: Array[Ability] = ug.get_abilities()
+	for ability_index: int in range(0, abilities.size()):
+		if abilities[ability_index].always_on == true:
 			continue
-		_add_ability_to_bar(ability)
-	_play_state = PlayState.AWAITING_COMMAND
+		_add_ability_to_bar(abilities[ability_index], ability_index)
+	_play_state = PlayState.AWAITING_COMMAND_SELECTION
 
 
-func _process_awaiting_command(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
+func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, facing: Vector2i) -> void:
+	%PlayerControlls.show()
+	var mouse_pressed: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if _await_mouse_release:
+		if not mouse_pressed:
+			_await_mouse_release = false
+		else:
+			mouse_pressed = false
+	if _selected_ability == null:
+		print("Why is selected ability null?")
+		return
+	var mouse_local_pos: Vector2 = %TerrainLayer.get_local_mouse_position()
+	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
+	var command_potentials: Array[Vector2i]
+	match _selected_ability.mechanism:
+		Ability.AbilityMechanism.HOP:
+			var closest_squared_dist_to_mouse: float = INF
+			var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
+			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
+				for i in range(1, _selected_ability.ability_range):
+					var hop_dest: Vector2i = d * i + ug_map_loc
+					if %TerrainLayer.get_cell_source_id(hop_dest) == -1:
+						break
+					var hop_coord: int = hop_dest.x * _max_y + hop_dest.y
+					if _walls[hop_coord]:
+						break
+					var child_at: Node = _get_child_at(hop_dest)
+					if child_at != null:
+						if child_at is MapObjectGraphic:
+							if (child_at as MapObjectGraphic).blocks_hop():
+								break
+					else:
+						var vector_from_mouse: Vector2 = %TerrainLayer.map_to_local(hop_dest) - mouse_local_pos
+						var dist_squared_from_mouse: float = vector_from_mouse.length_squared()
+						if dist_squared_from_mouse < closest_squared_dist_to_mouse:
+							closest_map_loc_to_mouse = hop_dest
+							closest_squared_dist_to_mouse = dist_squared_from_mouse
+						command_potentials.append(hop_dest)
+			%AbilityLayer.clear()
+			if closest_map_loc_to_mouse != Vector2i.MIN:
+				%AbilityLayer.set_cell(closest_map_loc_to_mouse, HOP_SOURCE_ID, HOP_ATLAS_SELECTED)
+				for v: Vector2i in command_potentials:
+					if v != closest_map_loc_to_mouse:
+						%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
+				if mouse_pressed:
+					_animation_tween = create_tween()
+					_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
+					var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
+					delta = delta / delta.length()
+					if delta != facing:
+						if delta + facing == Vector2i.ZERO:
+							var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
+							if randi() % 2 == 0:
+								mid = mid * Vector2i(-1, -1)
+							_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
+							_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
+						else:
+							_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
+					_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
+					_play_state = PlayState.ANIMATING_COMMAND
+			_update_fog_of_war()
+
+
+var _animation_tween: Tween
+var _animation_payload: Array[Vector2]
+func _animate_hop(fraction: float) -> void:
+	_get_current_unit_graphic().position = lerp(_animation_payload[0], _animation_payload[1], fraction)
+	_update_fog_of_war()
+
+
+func _animate_turn(dir: Vector2) -> void:
+	_update_current_unit_facing(dir)
+	_get_current_unit_graphic().set_facing(_unit_list[0][1])
+	_update_fog_of_war()
+
+
+func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
+	%AbilityLayer.clear()
 	%PlayerControlls.show()
 	#for entry: Array in _unit_list:
 		#entry[3] -= delta
@@ -251,7 +420,7 @@ func _update_fog_of_war() -> void:
 	var light_cones: Dictionary[int, float] = {}
 	for entry: Array in _unit_list:
 		var unit_graphic: UnitGraphic = entry[0] as UnitGraphic
-		var illumination: Ability = unit_graphic.get_illumination_ability()
+		var illumination: Ability = unit_graphic.get_ability(Ability.AbilityMechanism.ILLUMINATE)
 		if illumination != null:
 			var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
 			var unit_light_range: int = illumination.ability_range
