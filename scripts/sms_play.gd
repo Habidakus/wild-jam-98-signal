@@ -406,14 +406,16 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 			%AbilityLayer.set_cell(loc, WALK_SOURCE_ID, WALK_ATLAS_SELECTED)
 		var norm: Vector2 = closest_map_loc_delta_to_mouse.normalized()
 		var max_dot: float = -100.0
-		var best_facing: Vector2i = Vector2i.MIN
+		var best_atlas: Vector2i = Vector2i.MIN
+		var final_facing: Vector2i = Vector2i.MIN
 		for d_tupple in [[Vector2i.UP, WALK_ATLAS_UP], [Vector2i.RIGHT, WALK_ATLAS_RIGHT], [Vector2i.DOWN, WALK_ATLAS_DOWN], [Vector2i.LEFT, WALK_ATLAS_LEFT]]:
 			var dot: float = Vector2(d_tupple[0]).dot(norm)
 			if dot > max_dot:
 				max_dot = dot
-				best_facing = d_tupple[1]
-		if best_facing != Vector2i.MIN:
-			%AbilityLayer.set_cell(closest_map_loc_to_mouse, WALK_SOURCE_ID, best_facing)
+				best_atlas = d_tupple[1]
+				final_facing = d_tupple[0]
+		if best_atlas != Vector2i.MIN:
+			%AbilityLayer.set_cell(closest_map_loc_to_mouse, WALK_SOURCE_ID, best_atlas)
 		if mouse_pressed:
 			ug.start_hop_animation(true)
 			_ap_remaining -= _selected_ability.ap_cost
@@ -424,7 +426,7 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 				full_path.append(closest_map_loc_to_mouse)
 			elif full_path[full_path.size() - 1] != closest_map_loc_to_mouse:
 				full_path.append(closest_map_loc_to_mouse)
-			_animation_payload = [ug_map_loc, facing, full_path, best_facing]
+			_animation_payload = [ug_map_loc, facing, full_path, final_facing]
 			#var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
 			#delta = delta / delta.length()
 			#if delta != facing:
@@ -452,7 +454,13 @@ func _animate_walk(fraction: float) -> void:
 	var mouse_path: Array = _animation_payload[2]
 	var mps: int = mouse_path.size()
 	var index: int = int(clamp(0, mps - 1, float(mps) * fraction))
-	_get_current_unit_graphic().position = %TerrainLayer.map_to_local(mouse_path[index])
+	var ug: UnitGraphic = _get_current_unit_graphic()
+	var current_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
+	var map_loc: Vector2i = mouse_path[index]
+	if current_map_loc != map_loc:
+		var dir: Vector2i = map_loc - current_map_loc
+		_update_current_unit_facing(dir)
+	ug.position = %TerrainLayer.map_to_local(map_loc)
 	_update_fog_of_war()
 
 
