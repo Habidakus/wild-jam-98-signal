@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://b55mpfjj6lmc7"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_okrkn"]
+[ext_resource type="AudioStream" uid="uid://dfsvhs2gwpufp" path="res://sounds/cry_01.wav" id="1_qksjq"]
+
+[resource]
+script = ExtResource("1_okrkn")
+ability_name = "Charge"
+ability_description = "Kill a frog within charge range"
+activation_sound = ExtResource("1_qksjq")
+ability_range = 5
+mechanism = 11
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"
