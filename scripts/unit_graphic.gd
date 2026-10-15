@@ -2,6 +2,7 @@ class_name UnitGraphic extends Area2D
 
 
 var _unit_stats: Unit
+var _hop_frame_count: int = 0
 
 
 func set_unit(stats: Unit, show_facing_element: bool) -> void:
@@ -13,8 +14,9 @@ func set_unit(stats: Unit, show_facing_element: bool) -> void:
 	if _unit_stats.sprite_frames != null:
 		%AnimatedSprite2D.sprite_frames = _unit_stats.sprite_frames
 		%AnimatedSprite2D.show()
-		%AnimatedSprite2D.play()
 		%AnimatedSprite2D.animation = "default"
+		%AnimatedSprite2D.play()
+		_hop_frame_count = %AnimatedSprite2D.sprite_frames.get_frame_count(&"hop")
 		%UnitIcon.hide()
 	elif _unit_stats.texture != null:
 		%AnimatedSprite2D.hide()
@@ -39,6 +41,24 @@ func set_facing(facing: Vector2i) -> void:
 		%AnimatedSprite2D.flip_h = false
 	else:
 		print("ERROR: Bad facing %s for %s" % [str(facing), _unit_stats.unit_name])
+
+
+func start_idle_animation() -> void:
+	%AnimatedSprite2D.play("default")
+
+
+func start_hop_animation() -> void:
+	if _hop_frame_count == 0:
+		return
+	%AnimatedSprite2D.animation = "hop"
+	%AnimatedSprite2D.frame = 0
+
+
+func set_hop_animation_frame(fraction: float) -> void:
+	if _hop_frame_count == 0:
+		return
+	var frame: int = int(float(_hop_frame_count) * clamp(fraction, 0.0, 0.9999))
+	%AnimatedSprite2D.frame = frame
 
 
 func get_abilities() -> Array[Ability]:

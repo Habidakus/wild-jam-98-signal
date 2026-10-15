@@ -14,7 +14,7 @@ var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
 
 const TURN_TIME: float = 0.5
-const HOP_TIME: float = 3.0
+const HOP_TIME: float = 0.5
 const HOP_SOURCE_ID: int = 0
 const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
 const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
@@ -335,61 +335,72 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 		print("Why is selected ability null?")
 		return
 	var mouse_local_pos: Vector2 = %TerrainLayer.get_local_mouse_position()
-	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
-	var command_potentials: Array[Vector2i]
 	match _selected_ability.mechanism:
 		Ability.AbilityMechanism.HOP:
-			var closest_squared_dist_to_mouse: float = INF
-			var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
-			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
-				for i in range(1, _selected_ability.ability_range):
-					var hop_dest: Vector2i = d * i + ug_map_loc
-					if %TerrainLayer.get_cell_source_id(hop_dest) == -1:
+			_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
+	_update_fog_of_war()
+
+func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
+	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
+	var command_potentials: Array[Vector2i]
+	var closest_squared_dist_to_mouse: float = INF
+	var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
+	for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
+		for i in range(1, _selected_ability.ability_range):
+			var hop_dest: Vector2i = d * i + ug_map_loc
+			if %TerrainLayer.get_cell_source_id(hop_dest) == -1:
+				break
+			var hop_coord: int = hop_dest.x * _max_y + hop_dest.y
+			if _walls[hop_coord]:
+				break
+			var child_at: Node = _get_child_at(hop_dest)
+			if child_at != null:
+				if child_at is MapObjectGraphic:
+					if (child_at as MapObjectGraphic).blocks_hop():
 						break
-					var hop_coord: int = hop_dest.x * _max_y + hop_dest.y
-					if _walls[hop_coord]:
-						break
-					var child_at: Node = _get_child_at(hop_dest)
-					if child_at != null:
-						if child_at is MapObjectGraphic:
-							if (child_at as MapObjectGraphic).blocks_hop():
-								break
-					else:
-						var vector_from_mouse: Vector2 = %TerrainLayer.map_to_local(hop_dest) - mouse_local_pos
-						var dist_squared_from_mouse: float = vector_from_mouse.length_squared()
-						if dist_squared_from_mouse < closest_squared_dist_to_mouse:
-							closest_map_loc_to_mouse = hop_dest
-							closest_squared_dist_to_mouse = dist_squared_from_mouse
-						command_potentials.append(hop_dest)
-			%AbilityLayer.clear()
-			if closest_map_loc_to_mouse != Vector2i.MIN:
-				%AbilityLayer.set_cell(closest_map_loc_to_mouse, HOP_SOURCE_ID, HOP_ATLAS_SELECTED)
-				for v: Vector2i in command_potentials:
-					if v != closest_map_loc_to_mouse:
-						%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
-				if mouse_pressed:
-					_animation_tween = create_tween()
-					_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
-					var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
-					delta = delta / delta.length()
-					if delta != facing:
-						if delta + facing == Vector2i.ZERO:
-							var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
-							if randi() % 2 == 0:
-								mid = mid * Vector2i(-1, -1)
-							_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
-							_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
-						else:
-							_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
-					_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
-					_play_state = PlayState.ANIMATING_COMMAND
-			_update_fog_of_war()
+			else:
+				var vector_from_mouse: Vector2 = %TerrainLayer.map_to_local(hop_dest) - mouse_local_pos
+				var dist_squared_from_mouse: float = vector_from_mouse.length_squared()
+				if dist_squared_from_mouse < closest_squared_dist_to_mouse:
+					closest_map_loc_to_mouse = hop_dest
+					closest_squared_dist_to_mouse = dist_squared_from_mouse
+				command_potentials.append(hop_dest)
+	%AbilityLayer.clear()
+	if closest_map_loc_to_mouse != Vector2i.MIN:
+		%AbilityLayer.set_cell(closest_map_loc_to_mouse, HOP_SOURCE_ID, HOP_ATLAS_SELECTED)
+		for v: Vector2i in command_potentials:
+			if v != closest_map_loc_to_mouse:
+				%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
+		if mouse_pressed:
+			ug.start_hop_animation()
+			_animation_tween = create_tween()
+			_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
+			var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
+			delta = delta / delta.length()
+			if delta != facing:
+				if delta + facing == Vector2i.ZERO:
+					var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
+					if randi() % 2 == 0:
+						mid = mid * Vector2i(-1, -1)
+					_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
+					_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
+				else:
+					_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
+			_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
+			_animation_tween.tween_callback(_animate_hop.bind(2.0))
+			_play_state = PlayState.ANIMATING_COMMAND
 
 
 var _animation_tween: Tween
 var _animation_payload: Array[Vector2]
 func _animate_hop(fraction: float) -> void:
-	_get_current_unit_graphic().position = lerp(_animation_payload[0], _animation_payload[1], fraction)
+	var ug: UnitGraphic = _get_current_unit_graphic()
+	if fraction <= 1.0:
+		ug.position = lerp(_animation_payload[0], _animation_payload[1], fraction)
+		ug.set_hop_animation_frame(fraction)
+	else:
+		ug.position = _animation_payload[1]
+		ug.start_idle_animation()
 	_update_fog_of_war()
 
 
