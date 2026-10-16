@@ -45,8 +45,9 @@ func set_facing(facing: Vector2i) -> void:
 
 
 func play_sound(sound: AudioStream) -> void:
-	%AudioStreamPlayer2D.stream = sound
-	%AudioStreamPlayer2D.play()
+	if sound != null:
+		%AudioStreamPlayer2D.stream = sound
+		%AudioStreamPlayer2D.play()
 
 
 func stop_sound() -> void:
