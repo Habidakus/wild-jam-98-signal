@@ -135,7 +135,10 @@ func enter_state() -> void:
 		_end_spot = _find_farthest_spot([_start_spot])
 		var end_marker: PackedScene = load("res://maps/objects/end_marker.tscn")
 		_place_object(end_marker.instantiate() as Node2D, _end_spot)
-	
+		_add_mothman_near(_end_spot)
+		_add_mothman_near(_end_spot)
+		_add_mothman_near(_end_spot)
+
 	if not has_loot:
 		var path: Array[Vector2i] = []
 		for p: Vector2i in _get_path(_start_spot, _end_spot):
@@ -143,11 +146,19 @@ func enter_state() -> void:
 		var treasure_spot_a: Vector2i = _find_farthest_spot(path)
 		var loot_marker: PackedScene = load("res://maps/objects/loot_marker.tscn")
 		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_a)
+		_add_mothman_near(treasure_spot_a)
+
 		path.append(treasure_spot_a)
 		var treasure_spot_b: Vector2i = _find_farthest_spot(path)
 		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
+		_add_mothman_near(treasure_spot_b)
 	
 	_update_fog_of_war()
+
+
+var _mothman_resource = preload("res://data/units/mothman.tres")
+func _add_mothman_near(loc: Vector2i) -> void:
+	_add_unit(_mothman_resource, _find_unoccupied_space_near(loc), Vector2i.UP)
 
 
 func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
@@ -348,13 +359,17 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	_selected_ability = null
 	_ap_remaining = ug._unit_stats.action_points
 	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
-	if stun_in_light != null:
-		_on_pass()
-		return
 	var die_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.DIE_IN_LIGHT)
-	if die_in_light:
-		_die()
-		return
+	if stun_in_light != null or die_in_light != null:
+		if _is_map_loc_in_light(%TerrainLayer.local_to_map(ug.position)):
+			if die_in_light != null:
+				_die()
+				return
+			elif stun_in_light != null:
+				_on_pass()
+				return
+			else:
+				print("huh?")
 	
 	var abilities: Array[Ability] = []
 	for ability: Ability in ug.get_abilities():
@@ -401,6 +416,10 @@ func _try_get_path(start: Vector2i, end: Vector2i, path_range: int, path_logic: 
 	return []
 
 
+func _is_map_loc_in_light(map_loc: Vector2i) -> bool:
+	return %FogOfWarLayer.get_cell_atlas_coords(map_loc).x < 3
+
+
 func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: int, ignore_nodes: Array[Node], avoid_light: bool, fly: bool) -> Array[Vector2i]:
 	var visited: Dictionary[Vector2i, Array] = {}
 	visited[start] = []
@@ -422,9 +441,9 @@ func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: i
 				if _walls[next_coord]:
 					continue
 				if avoid_light:
-					if %FogOfWarLayer.get_cell_atlas_coords(next_loc).x < 3:
+					if _is_map_loc_in_light(next_loc):
 						continue
-				var o: Node = _get_child_at(map_loc)
+				var o: Node = _get_child_at(next_loc)
 				if o != null:
 					if not ignore_nodes.has(o):
 						if (o is MapObjectGraphic):
@@ -457,7 +476,7 @@ func _try_get_path_direct_fire(start: Vector2i, end: Vector2i, path_range: int, 
 		if _walls[map_coord]:
 			return []
 		if avoid_light:
-			if %FogOfWarLayer.get_cell_atlas_coords(map_loc).x < 3:
+			if _is_map_loc_in_light(map_loc):
 				return []
 		var o: Node = _get_child_at(map_loc)
 		if o != null:
@@ -501,6 +520,7 @@ func _calculate_bresenham_path(start: Vector2i, end: Vector2i) -> Array[Vector2i
 
 
 func _try_do_moth_ability(ability: Ability) -> bool:
+	_selected_ability = ability
 	var moth: UnitGraphic = _get_current_unit_graphic()
 	var moth_map_loc: Vector2i = %TerrainLayer.local_to_map(moth.position)
 	var all_frogs: Array[UnitGraphic] = _get_all_units_of_a_side(Unit.UnitSide.FROG)
@@ -520,9 +540,11 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, false)
 		Ability.AbilityMechanism.CHARGE_WITH_FLY:
 			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, true)
+		Ability.AbilityMechanism.FLY:
+			return _try_do_moth_move(ability, moth_map_loc, all_frogs, true)
+		Ability.AbilityMechanism.WALK:
+			return _try_do_moth_move(ability, moth_map_loc, all_frogs, false)
 		#Ability.AbilityMechanism.PULL:
-		#Ability.AbilityMechanism.FLY:
-		#Ability.AbilityMechanism.WALK:
 		#Ability.AbilityMechanism.HOP:
 		#Ability.AbilityMechanism.RIBBIT_RADAR:
 		#Ability.AbilityMechanism.ILLUMINATE:
@@ -530,6 +552,51 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 		#Ability.AbilityMechanism.DIE_IN_LIGHT:
 	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [Ability.AbilityMechanism.keys()[ability.mechanism]])
 	return false
+
+
+func _try_do_moth_move(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
+	# First try an all dark path to frogs
+	var best_path: Array[Vector2i] = []
+	for frog: UnitGraphic in all_frogs:
+		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
+		var max_path_len: int = 100 if best_path.is_empty() else best_path.size()
+		var path: Array[Vector2i] = _try_get_path_direct_travel(moth_map_loc, frog_map_loc, max_path_len, [], true, fly)
+		if not path.is_empty():
+			if best_path.is_empty() or path.size() < best_path.size():
+				best_path = path
+	if not best_path.is_empty():
+		_move_along_path(ability.ability_range, best_path)
+		return true
+	for frog: UnitGraphic in all_frogs:
+		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
+		var max_path_len: int = 100 if best_path.is_empty() else best_path.size()
+		var path: Array[Vector2i] = _try_get_path_direct_travel(moth_map_loc, frog_map_loc, max_path_len, [], false, fly)
+		if not path.is_empty():
+			if best_path.is_empty() or path.size() < best_path.size():
+				best_path = path
+	if not best_path.is_empty():
+		_move_along_path(ability.ability_range, best_path)
+		return true
+	return false
+
+
+func _move_along_path(ability_range: int, path: Array[Vector2i]) -> void:
+	_play_state = PlayState.ANIMATING_COMMAND
+	_ap_remaining -= _selected_ability.ap_cost
+	_animation_payload = []
+	for map_loc: Vector2i in path:
+		if _is_map_loc_in_light(map_loc):
+			break
+		_animation_payload.append(map_loc)
+		ability_range -= 1
+		if ability_range <= 0:
+			break
+	_animation_tween = create_tween()
+	var duration: float = 0.1
+	if _selected_ability.activation_sound != null:
+		duration += _selected_ability.activation_sound.get_length()
+		_get_current_unit_graphic().play_sound(_selected_ability.activation_sound)
+	_animation_tween.tween_method(_animate_charge, 0.0, 1.0, duration)
 
 
 func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
@@ -540,7 +607,7 @@ func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Ar
 		if not path.is_empty():
 			_play_state = PlayState.ANIMATING_COMMAND
 			_ap_remaining -= _selected_ability.ap_cost
-			_animation_payload = [path]
+			_animation_payload = path
 			_animation_tween = create_tween()
 			_animation_tween.tween_method(_animate_charge, 0.0, 1.0, CHARGE_TIME * path.size())
 			_kill(frog)
@@ -649,7 +716,7 @@ func _animate_charge(fraction: float) -> void:
 	# a) move single cell in a cardinal direction
 	# b) turn to another setting
 	# Then we can spend time turning and animate moving
-	var path: Array = _animation_payload[2]
+	var path: Array = _animation_payload
 	var path_size: int = path.size()
 	var index: int = int(clamp(0, path_size - 1, float(path_size) * fraction))
 	var ug: UnitGraphic = _get_current_unit_graphic()
