@@ -331,6 +331,7 @@ func _on_pass() -> void:
 
 func _kill(target: UnitGraphic) -> void:
 	%AbilityLayer.clear()
+	_animation_tween.tween_property(%Camera2D, "position", target.position, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	var delay: float = DEATH_TIME
 	if _selected_ability != null:
 		var ug: UnitGraphic = _get_current_unit_graphic()
@@ -361,13 +362,13 @@ func _on_center() -> void:
 	var second_global_pos: Vector2 = current_global_pos + 2.0 * delta_global_pos / 3.0
 	var third_global_pos: Vector2 = dest_global_pos
 	
-	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.75, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.5, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_camera_tween.parallel()
 	_camera_tween.tween_property(%Camera2D, "global_position", first_global_pos, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
 	_camera_tween.tween_property(%Camera2D, "global_position", second_global_pos, 0.20)
 	
-	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 2.0, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 1.5, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_camera_tween.parallel()
 	_camera_tween.tween_property(%Camera2D, "global_position", third_global_pos, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 
@@ -380,9 +381,12 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	if stun_in_light != null or die_in_light != null:
 		if _is_map_loc_in_light(%TerrainLayer.local_to_map(ug.position)):
 			if die_in_light != null:
+				_selected_ability = die_in_light
 				_die()
 				return
 			elif stun_in_light != null:
+				_selected_ability = stun_in_light
+				ug.play_sound(stun_in_light.activation_sound)
 				_on_pass()
 				return
 			else:
