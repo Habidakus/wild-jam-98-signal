@@ -12,6 +12,7 @@ var _max_y: int = 40
 var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
+var _fog_of_war_source_id: int = 0
 
 const DEATH_TIME: float = 0.25
 const TURN_TIME: float = 0.5
@@ -41,64 +42,80 @@ func enter_state() -> void:
 	#var noise: FastNoiseLite = FastNoiseLite.new()
 	#noise.noise_type = FastNoiseLite.TYPE_SIMPLEX # FastNoiseLite.TYPE_PERLIN
 	#noise.frequency = 16.45
-	for x in range(0, _max_x):
-		for y in range(0, _max_y):
-			_walls[x * _max_y + y] = randi() % 2 == 0
-	for i in range(0, 8):
-		var n: Dictionary[int, bool] = {}
-		for x in range(0, _max_x):
-			for y in range(0, _max_y):
-				var c: int = 0
-				for dx in range(-1, 2):
-					var fx: int = x + dx
-					for dy in range(-1, 2):
-						var fy: int = y + dy
-						if dx == 0 and dy == 0:
-							pass
-						elif fx < 0 or fy < 0 or fx >= _max_x or fy >= _max_y:
-							c = c + 1
-						elif _walls[fx * _max_y + fy]:
-							c = c + 1
-				if x == 0 or y == 0 or x == _max_x - 1 or y == _max_y - 1:
-					n[x * _max_y + y] = true
-				elif c > 4:
-					n[x * _max_y + y] = true
-				elif c == 4 and _walls[x * _max_y + y]:
-					n[x * _max_y + y] = true
-				else:
-					n[x * _max_y + y] = false
-		_walls = n
-	var two_points: Array[Vector2i] = _find_two_rooms()
-	while not two_points.is_empty():
-		_connect_two_points(two_points[0], two_points[1])
-		two_points = _find_two_rooms()
-	for x in range(0, _max_x):
-		for y in range(0, _max_y):
-			var source_id: int = 0 if _walls[x * _max_y + y] else 1
-			var loc: Vector2i = Vector2i(x, y)
-			#if loc.x == 0 or loc.y == 0 or loc.x == _max_x - 1 or loc.y == _max_y - 1:
-			#	source_id = 0
-			if source_id == 1:
-				var atlas: Vector2i = Vector2i(0, 0)
-				%TerrainLayer.set_cell(loc, 0, atlas)
-			else:
-				var atlas: Vector2i = Vector2i(randi() % 3, 0)
-				%TerrainLayer.set_cell(loc, 1, atlas)
+	#for x in range(0, _max_x):
+		#for y in range(0, _max_y):
+			#_walls[x * _max_y + y] = randi() % 2 == 0
+	#for i in range(0, 8):
+		#var n: Dictionary[int, bool] = {}
+		#for x in range(0, _max_x):
+			#for y in range(0, _max_y):
+				#var c: int = 0
+				#for dx in range(-1, 2):
+					#var fx: int = x + dx
+					#for dy in range(-1, 2):
+						#var fy: int = y + dy
+						#if dx == 0 and dy == 0:
+							#pass
+						#elif fx < 0 or fy < 0 or fx >= _max_x or fy >= _max_y:
+							#c = c + 1
+						#elif _walls[fx * _max_y + fy]:
+							#c = c + 1
+				#if x == 0 or y == 0 or x == _max_x - 1 or y == _max_y - 1:
+					#n[x * _max_y + y] = true
+				#elif c > 4:
+					#n[x * _max_y + y] = true
+				#elif c == 4 and _walls[x * _max_y + y]:
+					#n[x * _max_y + y] = true
+				#else:
+					#n[x * _max_y + y] = false
+		#_walls = n
+	#var two_points: Array[Vector2i] = _find_two_rooms()
+	#while not two_points.is_empty():
+		#_connect_two_points(two_points[0], two_points[1])
+		#two_points = _find_two_rooms()
+	#for x in range(0, _max_x):
+		#for y in range(0, _max_y):
+			#var source_id: int = 0 if _walls[x * _max_y + y] else 1
+			#var loc: Vector2i = Vector2i(x, y)
+			##if loc.x == 0 or loc.y == 0 or loc.x == _max_x - 1 or loc.y == _max_y - 1:
+			##	source_id = 0
+			#if source_id == 1:
+				#var atlas: Vector2i = Vector2i(0, 0)
+				#%TerrainLayer.set_cell(loc, 0, atlas)
+			#else:
+				#var atlas: Vector2i = Vector2i(randi() % 3, 0)
+				#%TerrainLayer.set_cell(loc, 1, atlas)
 	
 	################################
-	#var import_terrain_ps: PackedScene = load("res://maps/levels/0_tutorial.tscn")
-	#var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
-	#(%TerrainLayer as TileMapLayer).clear()
-	#(%TerrainLayer as TileMapLayer).tile_set = import_terrain.tile_set
-	#for cell_loc: Vector2i in import_terrain.get_used_cells():
-		#var source_id: int = import_terrain.get_cell_source_id(cell_loc)
-		#var atlas_coords: Vector2i = import_terrain.get_cell_atlas_coords(cell_loc)
-		#var alternative_tile: int = import_terrain.get_cell_alternative_tile(cell_loc)
-		#(%TerrainLayer as TileMapLayer).set_cell(cell_loc, source_id, atlas_coords, alternative_tile)
-	#for child: Node in import_terrain.get_children():
-		#var map_loc: Vector2i = import_terrain.local_to_map(child.position)
-		#var new_child = child.duplicate()
-		#_place_object(new_child, map_loc)
+	var import_terrain_ps: PackedScene = load("res://maps/levels/1_defendfrogvillage.tscn")
+	var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
+	(%TerrainLayer as TileMapLayer).clear()
+	(%TerrainLayer as TileMapLayer).tile_set = import_terrain.tile_set
+	(%FogOfWarLayer as TileMapLayer).tile_set.tile_size = import_terrain.tile_set.tile_size
+	if import_terrain.tile_set.tile_size.x == 16:
+		_fog_of_war_source_id = 0
+	elif import_terrain.tile_set.tile_size.x == 32:
+		_fog_of_war_source_id = 1
+	#(%FogOfWarLayer as TileMapLayer).tile_set.get_source(0).texture_region_size = import_terrain.tile_set.tile_size
+	(%AbilityLayer as TileMapLayer).tile_set.tile_size = import_terrain.tile_set.tile_size
+	_walls.clear()
+	for cell_loc: Vector2i in import_terrain.get_used_cells():
+		var source_id: int = import_terrain.get_cell_source_id(cell_loc)
+		var atlas_coords: Vector2i = import_terrain.get_cell_atlas_coords(cell_loc)
+		var alternative_tile: int = import_terrain.get_cell_alternative_tile(cell_loc)
+		(%TerrainLayer as TileMapLayer).set_cell(cell_loc, source_id, atlas_coords, alternative_tile)
+	var map_rect: Rect2i = (%TerrainLayer as TileMapLayer).get_used_rect()
+	for x in range(map_rect.position.x - 5, map_rect.position.x + map_rect.size.x + 7):
+		for y in range(map_rect.position.y - 5, map_rect.position.y + map_rect.size.y + 7):
+			_walls[x * _max_y + y] = false
+	for child: Node in import_terrain.get_children():
+		var map_loc: Vector2i = import_terrain.local_to_map(child.position)
+		var new_child = child.duplicate()
+		if new_child is MapObjectGraphic:
+			if (new_child as MapObjectGraphic).blocks_fly():
+				var map_coord = map_loc.x * _max_y + map_loc.y
+				_walls[map_coord] = true
+		_place_object(new_child, map_loc)
 	################################
 	
 	_start_spot = Vector2i.ZERO
@@ -438,7 +455,7 @@ func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: i
 				if visited.has(next_loc):
 					continue
 				var next_coord: int = next_loc.x * _max_y + next_loc.y
-				if _walls[next_coord]:
+				if not _walls.has(next_coord) or _walls[next_coord]:
 					continue
 				if avoid_light:
 					if _is_map_loc_in_light(next_loc):
@@ -881,15 +898,15 @@ func _update_fog_of_war() -> void:
 				if dist <= 0.25:
 					pass
 				elif dist <= 0.5:
-					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(0,0)) # one sixth
+					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(0,0)) # one sixth
 				elif dist <= 0.75:
-					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(1,0)) # one third
+					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(1,0)) # one third
 				else:
-					%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(2,0)) # one half
+					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(2,0)) # one half
 			elif _seen_cells.has(coord):
-				%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(3,0)) # five sixths
+				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(3,0)) # five sixths
 			else:
-				%FogOfWarLayer.set_cell(map_loc, 0, Vector2i(4,0)) # full
+				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(4,0)) # full
 
 
 func _is_in_cell_in_forward_arc(origin: Vector2i, facing: Vector2i, dest: Vector2i) -> bool:
@@ -1074,12 +1091,14 @@ func _connect_two_points(start: Vector2i, end: Vector2i) -> void:
 
 
 func _get_path(start: Vector2i, end: Vector2i) -> PackedVector2Array:
+	var map_rect: Rect2i = (%TerrainLayer as TileMapLayer).get_used_rect()
 	var astar: AStarGrid2D = AStarGrid2D.new()
-	astar.region = Rect2i(0, 0, _max_x, _max_y)
+	astar.region = map_rect
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
-	for x in range(0, _max_x):
-		for y in range(0, _max_y):
+	
+	for x in range(map_rect.position.x, map_rect.position.x + map_rect.size.x):
+		for y in range(map_rect.position.y, map_rect.position.y + map_rect.size.y):
 			var loc: Vector2i = Vector2i(x, y)
 			if _walls[x * _max_y + y]:
 				astar.set_point_weight_scale(loc, 50.0)
