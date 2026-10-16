@@ -206,7 +206,7 @@ func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
 	unit_graphic.set_unit(unit, true)
 	_place_object(unit_graphic, spot)
 	unit_graphic.set_facing(facing)
-	unit_graphic.z_index = 100
+	#unit_graphic.z_index = 100
 	_unit_list.append([unit_graphic, facing, randf()])
 	_unit_list.sort_custom(func(a, b): return a[2] < b[2])
 
@@ -344,7 +344,7 @@ func _on_center() -> void:
 	var second_global_pos: Vector2 = current_global_pos + 2.0 * delta_global_pos / 3.0
 	var third_global_pos: Vector2 = dest_global_pos
 	
-	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.75, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_camera_tween.parallel()
 	_camera_tween.tween_property(%Camera2D, "global_position", first_global_pos, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
@@ -707,6 +707,9 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 				full_path.append(closest_map_loc_to_mouse)
 			_animation_payload = [ug_map_loc, facing, full_path, final_facing]
 			_animation_tween.tween_method(_animate_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
+			var final_position: Vector2 = %TerrainLayer.map_to_local(closest_map_loc_to_mouse)
+			_animation_tween.tween_callback(Callable(%AbilityLayer, "clear"))
+			_animation_tween.tween_property(%Camera2D, "position", final_position, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 			_animation_tween.tween_callback(_animate_walk.bind(2.0))
 			_play_state = PlayState.ANIMATING_COMMAND
 
@@ -730,10 +733,12 @@ func _animate_charge(fraction: float) -> void:
 
 
 func _animate_walk(fraction: float) -> void:
+	var ug: UnitGraphic = _get_current_unit_graphic()
 	if fraction > 1.0:
 		# end of animation
 		var final_facing: Vector2i = _animation_payload[3]
 		_update_current_unit_facing(final_facing)
+		ug.start_idle_animation()
 		_update_fog_of_war()
 		return
 	# TODO: Rather than an array of vectors, the mouse path should be an array of actions either:
@@ -743,7 +748,6 @@ func _animate_walk(fraction: float) -> void:
 	var mouse_path: Array = _animation_payload[2]
 	var mps: int = mouse_path.size()
 	var index: int = int(clamp(0, mps - 1, float(mps) * fraction))
-	var ug: UnitGraphic = _get_current_unit_graphic()
 	var current_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
 	var map_loc: Vector2i = mouse_path[index]
 	if current_map_loc != map_loc:
@@ -814,8 +818,10 @@ func _animate_hop(fraction: float) -> void:
 		ug.position = lerp(_animation_payload[0], _animation_payload[1], fraction)
 		ug.set_hop_animation_frame(fraction)
 	else:
+		%AbilityLayer.clear()
 		ug.position = _animation_payload[1]
 		ug.start_idle_animation()
+	%Camera2D.position = ug.position
 	_update_fog_of_war()
 
 
