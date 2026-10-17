@@ -662,7 +662,42 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 			_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
 		Ability.AbilityMechanism.WALK:
 			_process_awaiting_walk_command(ug, facing, mouse_pressed, mouse_local_pos)
+		Ability.AbilityMechanism.RIBBIT_RADAR:
+			_process_awaiting_ribbit_command(ug, facing)
 	_update_fog_of_war()
+
+var ping_scene: PackedScene = preload("res://scenes/ping.tscn")
+const SONAR_SPEED: float = 320.0
+func _process_awaiting_ribbit_command(ug: UnitGraphic, facing: Vector2i) -> void:
+	%AbilityLayer.clear()
+	ug.play_sound(_selected_ability.activation_sound)
+	var max_delay: float = 0
+	for entity: Array in _unit_list:
+		var entity_ug: UnitGraphic = entity[0]
+		if entity_ug.is_dead():
+			continue
+		if entity_ug._unit_stats.unit_side != Unit.UnitSide.MOTH:
+			continue
+		var dist: float = (ug.position - entity_ug.position).length()
+		var delay: float = dist / SONAR_SPEED
+		var radar_tween: Tween = create_tween()
+		radar_tween.tween_interval(delay)
+		radar_tween.tween_callback(_create_ping.bind(entity_ug.position))
+		if delay > max_delay:
+			max_delay = delay
+	_ap_remaining -= _selected_ability.ap_cost
+	_animation_tween = create_tween()
+	_animation_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.7, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	if max_delay > 1.8 + 0.8:
+		_animation_tween.tween_interval(max_delay - (1.8 + 0.8))
+	_animation_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 1.25, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_play_state = PlayState.ANIMATING_COMMAND
+
+
+func _create_ping(pos: Vector2) -> void:
+	var ping: Control = ping_scene.instantiate()
+	ping.position = pos
+	%AbilityLayer.add_child(ping)
 
 
 func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
