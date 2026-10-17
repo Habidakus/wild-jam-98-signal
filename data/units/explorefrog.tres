@@ -11,7 +11,7 @@
 
 [resource]
 script = ExtResource("5_7vjo0")
-unit_name = "Frogman"
+unit_name = "Explorefrog"
 texture = ExtResource("7_k86rc")
 sprite_frames = ExtResource("6_k86rc")
 unit_description = "Explore Frog will never understand why Valheim uses strawberry art for raspberries. "

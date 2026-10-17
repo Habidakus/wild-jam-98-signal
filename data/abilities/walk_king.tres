@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://c51kh10ttr100"]
+
+[ext_resource type="AudioStream" uid="uid://dswtjhgt0442y" path="res://sounds/gravel_footsteps_04.wav" id="1_vqqoe"]
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="2_64a0x"]
+
+[resource]
+script = ExtResource("2_64a0x")
+ability_name = "Waddle"
+activation_sound = ExtResource("1_vqqoe")
+target = 1
+mechanism = 3
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"
