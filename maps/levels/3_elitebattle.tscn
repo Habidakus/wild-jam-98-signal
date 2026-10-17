@@ -150,4 +150,4 @@ position = Vector2(1049, 176)
 position = Vector2(1056, 209)
 
 [node name="StartMarker" parent="." unique_id=287536599 instance=ExtResource("5_hwy7v")]
-position = Vector2(29, 335)
+position = Vector2(49, 334)
