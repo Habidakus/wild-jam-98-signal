@@ -3,17 +3,18 @@
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_r15hh"]
 [ext_resource type="Resource" uid="uid://ej4m7axlxbbb" path="res://data/abilities/lantern.tres" id="2_1y7wq"]
 [ext_resource type="Resource" uid="uid://c51kh10ttr100" path="res://data/abilities/walk_king.tres" id="3_t37rh"]
+[ext_resource type="Resource" uid="uid://cig7wslltbcr4" path="res://data/abilities/crush_king.tres" id="4_r15hh"]
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_f0jxv"]
 [ext_resource type="SpriteFrames" uid="uid://d3ua7p348gblt" path="res://art/wild_frogs/animations/frog_05_king/sprite_frames.tres" id="5_t37rh"]
 [ext_resource type="Texture2D" uid="uid://ckyxwqf20ldl1" path="res://art/wild_frogs/sprites/frog_05_king.png" id="7_r15hh"]
 
 [resource]
 script = ExtResource("5_f0jxv")
-unit_name = "Kingfrog"
+unit_name = "King Frog"
 texture = ExtResource("7_r15hh")
 sprite_frames = ExtResource("5_t37rh")
 unit_description = "King Frog expects obedience. Long live the King Frog."
 unit_side = 1
 hit_points = 15
-abilities = Array[ExtResource("1_r15hh")]([ExtResource("2_1y7wq"), ExtResource("3_t37rh")])
+abilities = Array[ExtResource("1_r15hh")]([ExtResource("2_1y7wq"), ExtResource("3_t37rh"), ExtResource("4_r15hh")])
 metadata/_custom_type_script = "uid://cobklneaf4pkw"
