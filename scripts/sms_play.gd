@@ -818,11 +818,14 @@ func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_p
 		return
 	_target_instance.position = closest_foe_to_mouse.position
 	_target_instance.hide_label()
+	if path_to_foe[0] != ug_map_loc:
+		path_to_foe.insert(0, ug_map_loc)
+	if path_to_foe.size() > 1:
+		var final_facing: Vector2i = path_to_foe[path_to_foe.size() - 1] - path_to_foe[path_to_foe.size() - 2]
+		_target_instance.set_facing(final_facing)
 	if not mouse_pressed:
 		return
 	_ap_remaining -= _selected_ability.ap_cost
-	if path_to_foe[0] != ug_map_loc:
-		path_to_foe.insert(0, ug_map_loc)
 	_animation_payload = [closest_foe_to_mouse, path_to_foe]
 	_animation_tween = create_tween()
 	_animation_tween.tween_property(%Camera2D, "position", closest_foe_to_mouse.position, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)

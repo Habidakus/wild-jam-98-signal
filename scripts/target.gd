@@ -18,14 +18,28 @@ func _process(delta: float) -> void:
 		hide()
 
 
+func set_facing(facing: Vector2i) -> void:
+	match facing:
+		Vector2i.UP:
+			%Sprite2D.rotation_degrees = 0
+		Vector2i.RIGHT:
+			%Sprite2D.rotation_degrees = 90
+		Vector2i.DOWN:
+			%Sprite2D.rotation_degrees = 180
+		Vector2i.LEFT:
+			%Sprite2D.rotation_degrees = 270
+		_:
+			assert(false, "UNKNOWN ROTATION FOR TARGETTING")
+
+
 func _start_rotate() -> void:
 	_rotate_tween = create_tween()
-	_rotate_tween.tween_property(self, "rotation_degrees", randf() * 30.0 - 15.0, 1.0 + randf() * 2.0)
+	_rotate_tween.tween_property(self, "rotation_degrees", randf() * 20.0 - 10.0, 1.0 + randf() * 2.0)
 
 
 func _start_alpha() -> void:
 	_alpha_tween = create_tween()
-	_alpha_tween.tween_property(self, "modulate:a", 0.5 + randf() * .5, 1.0 + randf() * 2.0)
+	_alpha_tween.tween_property(self, "modulate:a", 0.4 + randf() * .6, 0.5 + randf() * 1.0)
 
 
 func hide_label() -> void:
