@@ -404,18 +404,7 @@ func _win() -> void:
 	end_tween.tween_callback(Callable(our_state_machine, "switch_state").bind(_victory_state))
 
 
-func _kill(target: UnitGraphic, tween: Tween) -> void:
-	%AbilityLayer.clear()
-	if tween != null:
-		tween.tween_property(%Camera2D, "position", target.position, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	var delay: float = DEATH_TIME
-	if _selected_ability != null:
-		var ug: UnitGraphic = _get_current_unit_graphic()
-		if _selected_ability.activation_sound != null:
-			ug.play_sound(_selected_ability.activation_sound)
-			delay += _selected_ability.activation_sound.get_length()
-	if tween != null:
-		tween.tween_interval(delay)
+func _apply_death(target: UnitGraphic) -> void:
 	target.set_dead()
 	if target.is_king():
 		_lose()
@@ -434,6 +423,25 @@ func _kill(target: UnitGraphic, tween: Tween) -> void:
 			_win()
 		elif frog_count == 0:
 			_lose()
+
+
+func _frog_kill(target: UnitGraphic) -> void:
+	_apply_death(target)
+
+
+func _kill(target: UnitGraphic, tween: Tween) -> void:
+	%AbilityLayer.clear()
+	if tween != null:
+		tween.tween_property(%Camera2D, "position", target.position, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	var delay: float = DEATH_TIME
+	if _selected_ability != null:
+		var ug: UnitGraphic = _get_current_unit_graphic()
+		if _selected_ability.activation_sound != null:
+			ug.play_sound(_selected_ability.activation_sound)
+			delay += _selected_ability.activation_sound.get_length()
+	if tween != null:
+		tween.tween_interval(delay)
+	_apply_death(target)
 	_selected_ability = null
 	_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND
@@ -825,14 +833,17 @@ func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_p
 		_target_instance.set_facing(final_facing)
 	if not mouse_pressed:
 		return
-	_ap_remaining -= _selected_ability.ap_cost
+	#_ap_remaining -= _selected_ability.ap_cost
 	_animation_payload = [closest_foe_to_mouse, path_to_foe]
 	_animation_tween = create_tween()
 	_animation_tween.tween_property(%Camera2D, "position", closest_foe_to_mouse.position, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_animation_tween.parallel()
 	_animation_tween.tween_method(_animate_frog_charge, 0.0, 1.0, CHARGE_TIME)
 	_animation_tween.tween_callback(_animate_frog_charge.bind(2.0))
-	_animation_tween.tween_callback(_kill.bind(closest_foe_to_mouse, null))
+	_animation_tween.tween_callback(Callable(closest_foe_to_mouse, "play_sound").bind(_selected_ability.activation_sound))
+	_animation_tween.tween_callback(_frog_kill.bind(closest_foe_to_mouse))
+	_animation_tween.tween_interval(_selected_ability.activation_sound.get_length())
+	_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND
 
 

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="2_ikcxk"]
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_feofu"]
+playback_mode = 1
 streams_count = 2
 stream_0/stream = ExtResource("1_ikcxk")
 stream_1/stream = ExtResource("2_feofu")
