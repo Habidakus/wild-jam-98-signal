@@ -742,7 +742,7 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 			mouse_pressed = false
 	if mouse_pressed:
 		var hover_control: Control = get_viewport().gui_get_hovered_control()
-		if hover_control != self and hover_control != _target_instance:
+		if hover_control != self and hover_control != _target_instance and hover_control != %Background:
 			# Don't intercept mouse presses over valid buttons
 			mouse_pressed = false
 	if _selected_ability == null:
@@ -1097,8 +1097,8 @@ func _update_fog_of_war() -> void:
 			var unit_light_range: int = illumination.ability_range
 			var unit_facing: Vector2i = entry[1]
 			_generate_light_cones(unit_map_loc, unit_light_range, unit_facing, light_cones)
-	for x in range(-5, _max_x + 5):
-		for y in range(-5, _max_y + 5):
+	for x in range(-1, _max_x + 1):
+		for y in range(-1, _max_y + 1):
 			var coord: int = x * _max_y + y
 			var map_loc: Vector2i = Vector2i(x, y)
 			if light_cones.has(coord):

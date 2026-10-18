@@ -15,6 +15,17 @@ grow_vertical = 2
 script = ExtResource("1_yc7cj")
 metadata/_custom_type_script = "uid://bbl41p6swfbs4"
 
+[node name="Background" type="ColorRect" parent="." unique_id=1163700612]
+unique_name_in_owner = true
+z_index = -2
+custom_minimum_size = Vector2(6000, 6000)
+layout_mode = 0
+offset_left = -2000.0
+offset_top = -2000.0
+offset_right = 4000.0
+offset_bottom = 4000.0
+color = Color(0, 0, 0, 1)
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1660944806]
 unique_name_in_owner = true
 position = Vector2(574, 324)
