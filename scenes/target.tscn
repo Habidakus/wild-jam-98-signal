@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://b481xljvooqsy"]
+
+[ext_resource type="Script" uid="uid://c8m2r08vuk152" path="res://scripts/target.gd" id="1_b5a2r"]
+[ext_resource type="Texture2D" uid="uid://bfc0xaw75b4qk" path="res://art/temp/target.png" id="2_nlbrr"]
+
+[node name="Target" type="Control" unique_id=1066227604]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_b5a2r")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1371899721]
+unique_name_in_owner = true
+texture = ExtResource("2_nlbrr")
+
+[node name="Label" type="Label" parent="." unique_id=2121314810]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -107.0
+offset_top = -28.0
+offset_right = 91.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "No targets within range"
+horizontal_alignment = 1
+vertical_alignment = 1
