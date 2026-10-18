@@ -229,7 +229,7 @@ func enter_state() -> void:
 
 
 func _add_mothman_near(loc: Vector2i) -> void:
-	_add_unit(_mothman_resource, _find_unoccupied_space_near(loc), Vector2i.UP)
+	_add_unit(_mothman_resource, _find_unoccupied_space_near(loc), Vector2i.MIN)
 
 
 func _find_unoccupied_space_near(spot: Vector2i) -> Vector2i:
@@ -274,7 +274,7 @@ func _ready() -> void:
 func _add_unit(unit: Unit, spot: Vector2i, facing: Vector2i) -> void:
 	var unit_scene: PackedScene = load("res://scenes/units/unit_graphic.tscn")
 	var unit_graphic: UnitGraphic = unit_scene.instantiate()
-	unit_graphic.set_unit(unit, true)
+	unit_graphic.set_unit(unit, facing.length() == 1)
 	_place_object(unit_graphic, spot)
 	unit_graphic.set_facing(facing)
 	#unit_graphic.z_index = 100

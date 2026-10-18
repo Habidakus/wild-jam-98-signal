@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://daodk3jpw6hek"
-path="res://.godot/imported/mothman_icon.png-27220c3431125b82f3808fae7878539f.ctex"
+uid="uid://6g0e8fv4nkdh"
+path="res://.godot/imported/mothman_icon_02.png-066ef681906ddb4f50db34abddc47476.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/temp/mothman_icon.png"
-dest_files=["res://.godot/imported/mothman_icon.png-27220c3431125b82f3808fae7878539f.ctex"]
+source_file="res://art/temp/mothman_icon_02.png"
+dest_files=["res://.godot/imported/mothman_icon_02.png-066ef681906ddb4f50db34abddc47476.ctex"]
 
 [params]
 

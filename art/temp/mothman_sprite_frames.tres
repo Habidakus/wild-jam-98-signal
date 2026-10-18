@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bb3cp64urvo4r"]
+
+[ext_resource type="Texture2D" uid="uid://daodk3jpw6hek" path="res://art/temp/mothman_icon_01.png" id="1_7vm55"]
+[ext_resource type="Texture2D" uid="uid://6g0e8fv4nkdh" path="res://art/temp/mothman_icon_02.png" id="2_maoi1"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_7vm55")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_maoi1")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 4.75
+}]

@@ -17,7 +17,8 @@ func set_unit(stats: Unit, show_facing_element: bool) -> void:
 		%AnimatedSprite2D.show()
 		%AnimatedSprite2D.animation = "default"
 		%AnimatedSprite2D.play()
-		_hop_frame_count = %AnimatedSprite2D.sprite_frames.get_frame_count(&"hop")
+		if (%AnimatedSprite2D.sprite_frames as SpriteFrames).has_animation(&"hop"):
+			_hop_frame_count = %AnimatedSprite2D.sprite_frames.get_frame_count(&"hop")
 		%UnitIcon.hide()
 	elif _unit_stats.texture != null:
 		%AnimatedSprite2D.hide()
@@ -40,6 +41,8 @@ func set_facing(facing: Vector2i) -> void:
 		%FacingIcon.rotation_degrees = 270
 		%UnitIcon.flip_h = false
 		%AnimatedSprite2D.flip_h = false
+	elif facing == Vector2i.MIN:
+		pass
 	else:
 		print("ERROR: Bad facing %s for %s" % [str(facing), _unit_stats.unit_name])
 

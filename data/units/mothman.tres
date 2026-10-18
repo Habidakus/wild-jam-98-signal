@@ -2,15 +2,17 @@
 
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_foxvg"]
 [ext_resource type="Resource" uid="uid://k2br2mwn2fx3" path="res://data/abilities/fly_mothman.tres" id="2_hi1bn"]
-[ext_resource type="Texture2D" uid="uid://daodk3jpw6hek" path="res://art/temp/mothman_icon.png" id="3_rtri0"]
 [ext_resource type="Resource" uid="uid://bbofwbk036w3r" path="res://data/abilities/dazed_in_light_mothman.tres" id="4_foxvg"]
 [ext_resource type="Resource" uid="uid://b55mpfjj6lmc7" path="res://data/abilities/charge_mothman.tres" id="4_nvx0f"]
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_27lbc"]
+[ext_resource type="SpriteFrames" uid="uid://bb3cp64urvo4r" path="res://art/temp/mothman_sprite_frames.tres" id="6_foxvg"]
+[ext_resource type="Texture2D" uid="uid://daodk3jpw6hek" path="res://art/temp/mothman_icon_01.png" id="7_pobcq"]
 
 [resource]
 script = ExtResource("5_27lbc")
 unit_name = "Mothman"
-texture = ExtResource("3_rtri0")
+texture = ExtResource("7_pobcq")
+sprite_frames = ExtResource("6_foxvg")
 unit_side = 2
 abilities = Array[ExtResource("1_foxvg")]([ExtResource("2_hi1bn"), ExtResource("4_nvx0f"), ExtResource("4_foxvg")])
 metadata/_custom_type_script = "uid://cobklneaf4pkw"
