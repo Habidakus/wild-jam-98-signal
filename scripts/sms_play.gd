@@ -121,7 +121,7 @@ func enter_state() -> void:
 	
 	_start_spot = Vector2i.ZERO
 	_end_spot = Vector2i.ZERO
-	var has_loot: bool = false
+	var loot_locs: Array[Vector2i]
 	for child: Node in %TerrainLayer.get_children():
 		if child.has_meta("marker"):
 			var marker: String = child.get_meta("marker")
@@ -130,8 +130,10 @@ func enter_state() -> void:
 				child.hide()
 			elif marker == "end":
 				_end_spot = %TerrainLayer.local_to_map(child.position)
+				child.hide()
 			elif marker == "loot":
-				has_loot = true
+				loot_locs.append(%TerrainLayer.local_to_map(child.position))
+				child.hide()
 			else:
 				print("UNKNOWN marker in map: %s" % [marker])
 	
@@ -153,23 +155,18 @@ func enter_state() -> void:
 		_end_spot = _find_farthest_spot([_start_spot])
 		var end_marker: PackedScene = load("res://maps/objects/end_marker.tscn")
 		_place_object(end_marker.instantiate() as Node2D, _end_spot)
-		_add_mothman_near(_end_spot)
-		_add_mothman_near(_end_spot)
-		_add_mothman_near(_end_spot)
 
-	if not has_loot:
+	if loot_locs.is_empty():
 		var path: Array[Vector2i] = []
 		for p: Vector2i in _get_path(_start_spot, _end_spot):
 			path.append(p)
-		var treasure_spot_a: Vector2i = _find_farthest_spot(path)
-		var loot_marker: PackedScene = load("res://maps/objects/loot_marker.tscn")
-		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_a)
-		_add_mothman_near(treasure_spot_a)
-
-		path.append(treasure_spot_a)
-		var treasure_spot_b: Vector2i = _find_farthest_spot(path)
-		_place_object(loot_marker.instantiate() as Node2D, treasure_spot_b)
-		_add_mothman_near(treasure_spot_b)
+		for i in range(0, 4):
+			var spawn_spot: Vector2i = _find_farthest_spot(path)
+			_add_mothman_near(spawn_spot)
+			path.append(spawn_spot)
+	else:
+		for spawn_spot: Vector2i in loot_locs:
+			_add_mothman_near(spawn_spot)
 	
 	_update_fog_of_war()
 
