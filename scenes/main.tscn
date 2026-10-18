@@ -7,6 +7,10 @@
 [ext_resource type="PackedScene" uid="uid://d18ii7nwlpaxf" path="res://scenes/sms_play.tscn" id="5_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://bskpfdcr50te5" path="res://scenes/sms_defeat.tscn" id="6_tefeu"]
 [ext_resource type="PackedScene" uid="uid://dayiday7wei7e" path="res://scenes/sms_victory.tscn" id="7_o6xl0"]
+[ext_resource type="PackedScene" uid="uid://d010uwkp2vrx6" path="res://scenes/sms_how_to_play_1.tscn" id="8_85g3d"]
+[ext_resource type="PackedScene" uid="uid://d0uqlmdhrikkb" path="res://scenes/sms_prologue_1.tscn" id="9_choun"]
+[ext_resource type="Script" uid="uid://binf2xft4u3ux" path="res://scripts/sms_how_to_play_1.gd" id="9_ya4ey"]
+[ext_resource type="PackedScene" uid="uid://cus1nh5ipt5oi" path="res://scenes/sms_prologue_2.tscn" id="11_ya4ey"]
 
 [node name="Main" type="Control" unique_id=1782326751]
 layout_mode = 3
@@ -35,6 +39,7 @@ visible = false
 next_state = NodePath("../SMS_Menu")
 
 [node name="SMS_Play" parent="StateMachine" unique_id=191438879 instance=ExtResource("5_tbgi4")]
+unique_name_in_owner = true
 
 [node name="SMS_Defeat" parent="StateMachine" unique_id=355198072 node_paths=PackedStringArray("next_state") instance=ExtResource("6_tefeu")]
 visible = false
@@ -43,3 +48,13 @@ next_state = NodePath("../SMS_Menu")
 [node name="SMS_Victory" parent="StateMachine" unique_id=1020829762 node_paths=PackedStringArray("next_state") instance=ExtResource("7_o6xl0")]
 visible = false
 next_state = NodePath("../SMS_Menu")
+
+[node name="SMS_How_To_Play_1" parent="StateMachine" unique_id=778924403 node_paths=PackedStringArray("next_state") instance=ExtResource("8_85g3d")]
+script = ExtResource("9_ya4ey")
+next_state = NodePath("../SMS_Play")
+
+[node name="SMS_Prologue_1" parent="StateMachine" unique_id=102360860 node_paths=PackedStringArray("next_state") instance=ExtResource("9_choun")]
+next_state = NodePath("../SMS_How_To_Play_1")
+
+[node name="SMS_Prologue_2" parent="StateMachine" unique_id=1991357346 node_paths=PackedStringArray("next_state") instance=ExtResource("11_ya4ey")]
+next_state = NodePath("../SMS_Play")

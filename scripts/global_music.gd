@@ -10,11 +10,13 @@ func _ready() -> void:
 	#_base_db = _music_player.volume_db
 	_music_player.volume_db = _min_db
 	get_tree().current_scene.add_child(_music_player)
-	_music_player.play()
+	#_music_player.play()
 	fade_in()
 
 
 static func fade_in() -> void:
+	if not _music_player.playing:
+		_music_player.play()
 	var tween: Tween = _music_player.create_tween()
 	tween.tween_property(_music_player, "volume_db", _base_db, 1.5).set_ease(Tween.EASE_OUT)
 

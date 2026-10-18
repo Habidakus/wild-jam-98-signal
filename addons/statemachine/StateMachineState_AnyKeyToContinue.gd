@@ -38,8 +38,10 @@ func _handle_event(event : InputEvent) -> void:
 	if _leave_tween == null:
 		if event.is_released():
 			if event is InputEventKey:
+				get_viewport().set_input_as_handled()
 				our_state_machine.switch_state(next_state.name)
 			if event is InputEventMouseButton:
+				get_viewport().set_input_as_handled()
 				our_state_machine.switch_state(next_state.name)
 
 func exit_state(next_state: StateMachineState) -> void:

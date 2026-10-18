@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://d010uwkp2vrx6"]
+
+[ext_resource type="Script" uid="uid://b7syegd82vm1t" path="res://addons/statemachine/StateMachineState_AnyKeyToContinue.gd" id="1_53hls"]
+[ext_resource type="Material" uid="uid://def3krwy2nsvo" path="res://art/green_graient.tres" id="2_blrwk"]
+
+[node name="sms_how_to_play_1" type="Control" unique_id=355198072]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_53hls")
+metadata/_custom_type_script = "uid://b7syegd82vm1t"
+
+[node name="Label" type="Label" parent="." unique_id=1074523704]
+material = ExtResource("2_blrwk")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -398.5
+offset_top = -148.5
+offset_right = 398.5
+offset_bottom = 148.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "You will be in control of three members of
+The Frog Signal Corp
+
+Every frog is equiped with a lantern to peel
+back the gloom of the swamp, and each frog
+gets to perform a couple actions per turn.
+
+Explorer Frog:
+Can emit a powerful croak to echolocate
+mothmen hidden in the darkness.
+
+Spotter Frog:
+Holding a more powerful lantern, this quick frog can cover more ground.
+
+Charger Frog:
+Filled with dauntless spirit, the Charger frog is the only member
+of the signal corps that can slay the dreaded mothmen with her Charge ability.
+
+Be cautious with your facing at the end of each frog's turn -
+as mothmen will only be held still while captivated
+by the bright lights of the Signal Corps' lanters."
+horizontal_alignment = 1
+vertical_alignment = 1

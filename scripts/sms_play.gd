@@ -21,6 +21,18 @@ var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
 var _fog_of_war_source_id: int = 0
+var _import_terrain: TileMapLayer
+var _heroes: Array[Unit]
+var _victory_state: String
+var _target_instance: Control
+var _selected_ability: Ability
+var _ap_remaining: int
+var _await_mouse_release: bool = false
+var _camera_tween: Tween
+var _mothman_resource = preload("res://data/units/mothman.tres")
+var _target_scene: PackedScene = preload("res://scenes/target.tscn")
+var _terrain_children: Array[Node] = []
+
 
 const DEATH_TIME: float = 0.25
 const TURN_TIME: float = 0.5
@@ -43,8 +55,27 @@ const WALK_ATLAS_LEFT: Vector2i = Vector2i(5, 0)
 
 func exit_state(next_state: StateMachineState) -> void:
 	%Camera2D.position = size / 2.0
+	%PlayerControlls.hide()
 	Music.fade_in()
+	for entry: Array in _unit_list:
+		entry[0].queue_free()
+	_unit_list = []
+	for node: Node2D in _terrain_children:
+		node.queue_free()
+	_terrain_children = []
 	super.exit_state(next_state)
+
+
+func set_level(tml: TileMapLayer) -> void:
+	_import_terrain = tml
+
+
+func set_heroes(heroes: Array[Unit]) -> void:
+	_heroes = heroes
+
+
+func set_victory(victory_state: String) -> void:
+	_victory_state = victory_state
 
 
 func enter_state() -> void:
@@ -53,6 +84,14 @@ func enter_state() -> void:
 	%PlayerControlls.show()
 	%TerrainLayer.clear()
 	Music.fade_out()
+	
+	_seen_cells.clear()
+	_walls.clear()
+	_start_spot = Vector2i.MIN
+	_end_spot = Vector2i.MIN
+	_unit_list = []
+	_fog_of_war_source_id = 0
+
 	#var noise: FastNoiseLite = FastNoiseLite.new()
 	#noise.noise_type = FastNoiseLite.TYPE_SIMPLEX # FastNoiseLite.TYPE_PERLIN
 	#noise.frequency = 16.45
@@ -101,36 +140,37 @@ func enter_state() -> void:
 				#%TerrainLayer.set_cell(loc, 1, atlas)
 	
 	################################
-	var import_terrain_ps: PackedScene = load("res://maps/levels/1_defendfrogvillage.tscn")
+	#var import_terrain_ps: PackedScene = load("res://maps/levels/1_defendfrogvillage.tscn")
 	#var import_terrain_ps: PackedScene = load("res://maps/levels/3_elitebattle.tscn")
-	var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
+	#var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
 	(%TerrainLayer as TileMapLayer).clear()
-	(%TerrainLayer as TileMapLayer).tile_set = import_terrain.tile_set
-	(%FogOfWarLayer as TileMapLayer).tile_set.tile_size = import_terrain.tile_set.tile_size
-	if import_terrain.tile_set.tile_size.x == 16:
+	(%TerrainLayer as TileMapLayer).tile_set = _import_terrain.tile_set
+	(%FogOfWarLayer as TileMapLayer).tile_set.tile_size = _import_terrain.tile_set.tile_size
+	if _import_terrain.tile_set.tile_size.x == 16:
 		_fog_of_war_source_id = 0
-	elif import_terrain.tile_set.tile_size.x == 32:
+	elif _import_terrain.tile_set.tile_size.x == 32:
 		_fog_of_war_source_id = 1
 	#(%FogOfWarLayer as TileMapLayer).tile_set.get_source(0).texture_region_size = import_terrain.tile_set.tile_size
-	(%AbilityLayer as TileMapLayer).tile_set.tile_size = import_terrain.tile_set.tile_size
+	(%AbilityLayer as TileMapLayer).tile_set.tile_size = _import_terrain.tile_set.tile_size
 	_walls.clear()
-	for cell_loc: Vector2i in import_terrain.get_used_cells():
-		var source_id: int = import_terrain.get_cell_source_id(cell_loc)
-		var atlas_coords: Vector2i = import_terrain.get_cell_atlas_coords(cell_loc)
-		var alternative_tile: int = import_terrain.get_cell_alternative_tile(cell_loc)
+	for cell_loc: Vector2i in _import_terrain.get_used_cells():
+		var source_id: int = _import_terrain.get_cell_source_id(cell_loc)
+		var atlas_coords: Vector2i = _import_terrain.get_cell_atlas_coords(cell_loc)
+		var alternative_tile: int = _import_terrain.get_cell_alternative_tile(cell_loc)
 		(%TerrainLayer as TileMapLayer).set_cell(cell_loc, source_id, atlas_coords, alternative_tile)
 	var map_rect: Rect2i = (%TerrainLayer as TileMapLayer).get_used_rect()
 	for x in range(map_rect.position.x - 5, map_rect.position.x + map_rect.size.x + 7):
 		for y in range(map_rect.position.y - 5, map_rect.position.y + map_rect.size.y + 7):
 			_walls[x * _max_y + y] = false
-	for child: Node in import_terrain.get_children():
-		var map_loc: Vector2i = import_terrain.local_to_map(child.position)
+	for child: Node in _import_terrain.get_children():
+		var map_loc: Vector2i = _import_terrain.local_to_map(child.position)
 		var new_child = child.duplicate()
 		if new_child is MapObjectGraphic:
 			if (new_child as MapObjectGraphic).blocks_fly():
 				var map_coord = map_loc.x * _max_y + map_loc.y
 				_walls[map_coord] = true
 		_place_object(new_child, map_loc)
+		_terrain_children.append(new_child)
 	################################
 	
 	_start_spot = Vector2i.ZERO
@@ -157,10 +197,11 @@ func enter_state() -> void:
 		var start_marker_scene: PackedScene = load("res://maps/objects/start_marker.tscn")
 		var start_marker_instance: Node2D = start_marker_scene.instantiate()
 		_place_object(start_marker_instance, _start_spot)
+		_terrain_children.append(start_marker_instance)
 		start_marker_instance.hide()
 
 	var facing: Vector2i = Vector2i.RIGHT
-	for frogman_resource in [load("res://data/units/explorefrog.tres"), load("res://data/units/speedfrog.tres"), load("res://data/units/unicornfrog.tres"), load("res://data/units/kingfrog.tres")]:
+	for frogman_resource in _heroes:
 		_add_unit(frogman_resource, _find_unoccupied_space_near(_start_spot), facing)
 		facing = Vector2i(- facing.y, facing.x) # rotate 90 degrees
 	_play_state = PlayState.SETUP_COMMAND
@@ -168,7 +209,9 @@ func enter_state() -> void:
 	if _end_spot == Vector2i.ZERO:
 		_end_spot = _find_farthest_spot([_start_spot])
 		var end_marker: PackedScene = load("res://maps/objects/end_marker.tscn")
-		_place_object(end_marker.instantiate() as Node2D, _end_spot)
+		var end_marker_instance: Node2D = end_marker.instantiate() as Node2D
+		_place_object(end_marker_instance, _end_spot)
+		_terrain_children.append(end_marker_instance)
 
 	if loot_locs.is_empty():
 		var path: Array[Vector2i] = []
@@ -185,7 +228,6 @@ func enter_state() -> void:
 	_update_fog_of_war()
 
 
-var _mothman_resource = preload("res://data/units/mothman.tres")
 func _add_mothman_near(loc: Vector2i) -> void:
 	_add_unit(_mothman_resource, _find_unoccupied_space_near(loc), Vector2i.UP)
 
@@ -330,10 +372,6 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 	%PlayerControlls.move_child(button, max_order + 1)
 
 
-var _selected_ability: Ability
-var _ap_remaining: int
-var _await_mouse_release: bool = false
-var _camera_tween: Tween
 func _on_ability_selected(ability: Ability) -> void:
 	%AbilityLayer.clear()
 	_selected_ability = ability
@@ -362,7 +400,7 @@ func _win() -> void:
 	var end_tween: Tween = create_tween()
 	end_tween.tween_interval(2.0)
 	end_tween.tween_callback(Callable(Music, "fade_in"))
-	end_tween.tween_callback(Callable(our_state_machine, "switch_state").bind("SMS_Victory"))
+	end_tween.tween_callback(Callable(our_state_machine, "switch_state").bind(_victory_state))
 
 
 func _kill(target: UnitGraphic, tween: Tween) -> void:
@@ -720,10 +758,8 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 		Ability.AbilityMechanism.CHARGE:
 			_process_awaiting_charge_command(ug, facing, mouse_pressed, mouse_local_pos)
 	_update_fog_of_war()
+	
 
-
-var _target_scene: PackedScene = preload("res://scenes/target.tscn")
-var _target_instance: Control
 func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
 	%AbilityLayer.clear()
 	if _target_instance == null:
