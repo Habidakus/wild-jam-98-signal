@@ -31,6 +31,7 @@ var _await_mouse_release: bool = false
 var _camera_tween: Tween
 var _mothman_resource = preload("res://data/units/mothman.tres")
 var _target_scene: PackedScene = preload("res://scenes/target.tscn")
+var target_potential_scene: PackedScene = preload("res://scenes/potential_target.tscn")
 var _terrain_children: Array[Node] = []
 
 
@@ -741,7 +742,7 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 			mouse_pressed = false
 	if mouse_pressed:
 		var hover_control: Control = get_viewport().gui_get_hovered_control()
-		if hover_control != self:
+		if hover_control != self and hover_control != _target_instance:
 			# Don't intercept mouse presses over valid buttons
 			mouse_pressed = false
 	if _selected_ability == null:
@@ -789,6 +790,31 @@ func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_p
 	if closest_foe_to_mouse == null:
 		_target_instance.position = %AbilityLayer.map_to_local(ug_map_loc + facing * _selected_ability.ability_range)
 		_target_instance.show_label()
+		if not mouse_pressed:
+			return
+		for x in range(ug_map_loc.x - _selected_ability.ability_range, ug_map_loc.x + _selected_ability.ability_range + 1):
+			for y in range(ug_map_loc.y - _selected_ability.ability_range, ug_map_loc.y + _selected_ability.ability_range + 1):
+				if abs(x - ug_map_loc.x) + abs(y - ug_map_loc.y) > _selected_ability.ability_range:
+					continue
+				var ping_coord: int = x * _max_y + y
+				if not _walls.has(ping_coord) or _walls[ping_coord]:
+					continue
+				var ping_map_loc: Vector2i = Vector2i(x, y)
+				if (%TerrainLayer as TileMapLayer).get_cell_source_id(ping_map_loc) < 0:
+					continue
+				var o: Node = _get_child_at(ping_map_loc)
+				if o != null:
+					if (o is MapObjectGraphic):
+						if (o as MapObjectGraphic).blocks_walk():
+							continue
+					elif (o is UnitGraphic):
+						continue
+				var path: Array[Vector2i] = _try_get_path(ug_map_loc, ping_map_loc, _selected_ability.ability_range, PathLogic.DIRECT_RUN, [], false)
+				if path.is_empty():
+					continue
+				var potential_target: Sprite2D = target_potential_scene.instantiate()
+				potential_target.position = %AbilityLayer.map_to_local(ping_map_loc)
+				%AbilityLayer.add_child(potential_target)
 		return
 	_target_instance.position = closest_foe_to_mouse.position
 	_target_instance.hide_label()

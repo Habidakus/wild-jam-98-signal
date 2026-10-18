@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dm7xndacytbg1"]
+
+[ext_resource type="Script" uid="uid://c55nd3lmeejat" path="res://scripts/potential_target.gd" id="2_6ny4c"]
+[ext_resource type="Texture2D" uid="uid://c7lk14mvctl3p" path="res://art/temp/target_potential.png" id="2_g2adb"]
+
+[node name="Sprite2D" type="Sprite2D" unique_id=568511290]
+texture = ExtResource("2_g2adb")
+script = ExtResource("2_6ny4c")
