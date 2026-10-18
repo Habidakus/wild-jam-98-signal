@@ -28,19 +28,6 @@ theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 16
 columns = 2
 
-[node name="FontAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=812837505]
-material = ExtResource("2_75j4y")
-layout_mode = 2
-theme_override_font_sizes/font_size = 44
-text = "Super Frog font:"
-horizontal_alignment = 2
-
-[node name="FontValue" type="Label" parent="CenterContainer/GridContainer" unique_id=1159938181]
-material = ExtResource("2_75j4y")
-layout_mode = 2
-theme_override_font_sizes/font_size = 44
-text = "fsuarez913"
-
 [node name="ProgAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=1214270479]
 material = ExtResource("2_75j4y")
 layout_mode = 2
@@ -67,6 +54,19 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "Jesse Decker"
 
+[node name="FontAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=812837505]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Super Frog font:"
+horizontal_alignment = 2
+
+[node name="FontValue" type="Label" parent="CenterContainer/GridContainer" unique_id=1159938181]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "fsuarez913"
+
 [node name="SwampAssetsAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=1126099448]
 material = ExtResource("2_75j4y")
 layout_mode = 2
@@ -79,3 +79,29 @@ material = ExtResource("2_75j4y")
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "CraftPix.net"
+
+[node name="FrogSpritesAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=2110904296]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Frog Sprites:"
+horizontal_alignment = 2
+
+[node name="FrogSpritesValue" type="Label" parent="CenterContainer/GridContainer" unique_id=1580277294]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Kelano Studio"
+
+[node name="MusicAttr" type="Label" parent="CenterContainer/GridContainer" unique_id=758219135]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Music:"
+horizontal_alignment = 2
+
+[node name="MusicValue" type="Label" parent="CenterContainer/GridContainer" unique_id=1390285721]
+material = ExtResource("2_75j4y")
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Caffeine Creek"

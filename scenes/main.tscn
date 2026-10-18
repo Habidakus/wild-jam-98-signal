@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://8ntctxucj2yg" path="res://scenes/sms_menu.tscn" id="3_sugp2"]
 [ext_resource type="PackedScene" uid="uid://de1533io65jsv" path="res://scenes/sms_credits.tscn" id="4_jyhfs"]
 [ext_resource type="PackedScene" uid="uid://d18ii7nwlpaxf" path="res://scenes/sms_play.tscn" id="5_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://bskpfdcr50te5" path="res://scenes/sms_defeat.tscn" id="6_tefeu"]
+[ext_resource type="PackedScene" uid="uid://dayiday7wei7e" path="res://scenes/sms_victory.tscn" id="7_o6xl0"]
 
 [node name="Main" type="Control" unique_id=1782326751]
 layout_mode = 3
@@ -33,3 +35,10 @@ visible = false
 next_state = NodePath("../SMS_Menu")
 
 [node name="SMS_Play" parent="StateMachine" unique_id=191438879 instance=ExtResource("5_tbgi4")]
+
+[node name="SMS_Defeat" parent="StateMachine" unique_id=355198072 node_paths=PackedStringArray("next_state") instance=ExtResource("6_tefeu")]
+visible = false
+next_state = NodePath("../SMS_Menu")
+
+[node name="SMS_Victory" parent="StateMachine" unique_id=1020829762 instance=ExtResource("7_o6xl0")]
+visible = false

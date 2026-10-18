@@ -1,7 +1,15 @@
 class_name Play extends StateMachineState
 
 
-enum PlayState { UNDEFINED, SETUP_COMMAND, AWAITING_COMMAND_SELECTION, AWAITING_COMMAND_CONFIGURATION, ANIMATING_COMMAND }
+enum PlayState {
+	UNDEFINED,
+	SETUP_COMMAND,
+	AWAITING_COMMAND_SELECTION,
+	AWAITING_COMMAND_CONFIGURATION,
+	ANIMATING_COMMAND,
+	TRANSITION_TO_DEFEAT,
+	TRANSITION_TO_VICTORY
+}
 
 
 var _play_state: PlayState = PlayState.UNDEFINED
@@ -33,12 +41,18 @@ const WALK_ATLAS_LEFT: Vector2i = Vector2i(5, 0)
 
 #const _footstep_time: float = 0.66
 
+func exit_state(next_state: StateMachineState) -> void:
+	%Camera2D.position = size / 2.0
+	Music.fade_in()
+	super.exit_state(next_state)
+
 
 func enter_state() -> void:
 	super.enter_state()
 	%Camera2D.position = size / 2.0
 	%PlayerControlls.show()
 	%TerrainLayer.clear()
+	Music.fade_out()
 	#var noise: FastNoiseLite = FastNoiseLite.new()
 	#noise.noise_type = FastNoiseLite.TYPE_SIMPLEX # FastNoiseLite.TYPE_PERLIN
 	#noise.frequency = 16.45
@@ -87,8 +101,8 @@ func enter_state() -> void:
 				#%TerrainLayer.set_cell(loc, 1, atlas)
 	
 	################################
-	#var import_terrain_ps: PackedScene = load("res://maps/levels/1_defendfrogvillage.tscn")
-	var import_terrain_ps: PackedScene = load("res://maps/levels/3_elitebattle.tscn")
+	var import_terrain_ps: PackedScene = load("res://maps/levels/1_defendfrogvillage.tscn")
+	#var import_terrain_ps: PackedScene = load("res://maps/levels/3_elitebattle.tscn")
 	var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
 	(%TerrainLayer as TileMapLayer).clear()
 	(%TerrainLayer as TileMapLayer).tile_set = import_terrain.tile_set
@@ -252,6 +266,10 @@ func _process(delta: float) -> void:
 			_process_awaiting_command_configuration(delta, current_entry[0], current_entry[1])
 		PlayState.ANIMATING_COMMAND:
 			_process_animating_command(delta, current_entry[0], current_entry[1])
+		PlayState.TRANSITION_TO_DEFEAT:
+			pass
+		PlayState.TRANSITION_TO_VICTORY:
+			pass
 		_:
 			assert(false, "Bad Play State: %s" % [_play_state])
 
@@ -332,11 +350,19 @@ func _on_pass() -> void:
 
 
 func _lose() -> void:
-	our_state_machine.switch_state("sms_defeat")
+	_play_state = PlayState.TRANSITION_TO_DEFEAT
+	var end_tween: Tween = create_tween()
+	end_tween.tween_interval(2.0)
+	end_tween.tween_callback(Callable(Music, "fade_in"))
+	end_tween.tween_callback(Callable(our_state_machine, "switch_state").bind("SMS_Defeat"))
 
 
 func _win() -> void:
-	our_state_machine.switch_state("sms_victory")
+	_play_state = PlayState.TRANSITION_TO_VICTORY
+	var end_tween: Tween = create_tween()
+	end_tween.tween_interval(2.0)
+	end_tween.tween_callback(Callable(Music, "fade_in"))
+	end_tween.tween_callback(Callable(our_state_machine, "switch_state").bind("SMS_Victory"))
 
 
 func _kill(target: UnitGraphic, tween: Tween) -> void:

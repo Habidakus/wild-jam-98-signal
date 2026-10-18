@@ -16,6 +16,10 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/image="uid://dqd4hclluv2vb"
 config/icon="res://icon.svg"
 
+[autoload]
+
+GlobalMusic="*uid://dgioidd8h8iqi"
+
 [display]
 
 window/stretch/mode="canvas_items"
