@@ -40,5 +40,6 @@ next_state = NodePath("../SMS_Menu")
 visible = false
 next_state = NodePath("../SMS_Menu")
 
-[node name="SMS_Victory" parent="StateMachine" unique_id=1020829762 instance=ExtResource("7_o6xl0")]
+[node name="SMS_Victory" parent="StateMachine" unique_id=1020829762 node_paths=PackedStringArray("next_state") instance=ExtResource("7_o6xl0")]
 visible = false
+next_state = NodePath("../SMS_Menu")
