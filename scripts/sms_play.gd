@@ -331,6 +331,14 @@ func _on_pass() -> void:
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
+func _lose() -> void:
+	pass
+
+
+func _win() -> void:
+	pass
+
+
 func _kill(target: UnitGraphic, tween: Tween) -> void:
 	%AbilityLayer.clear()
 	if tween != null:
@@ -344,6 +352,23 @@ func _kill(target: UnitGraphic, tween: Tween) -> void:
 	if tween != null:
 		tween.tween_interval(delay)
 	target.set_dead()
+	if target.is_king():
+		_lose()
+	else:
+		var moth_count: int = 0
+		var frog_count: int = 0
+		for entry: Array in _unit_list:
+			var ug: UnitGraphic = entry[0]
+			if ug.is_dead():
+				continue
+			if ug._unit_stats.unit_side == Unit.UnitSide.FROG:
+				frog_count += 1
+			elif ug._unit_stats.unit_side == Unit.UnitSide.MOTH:
+				moth_count += 1
+		if moth_count == 0:
+			_win()
+		elif frog_count == 0:
+			_lose()
 	_selected_ability = null
 	_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND

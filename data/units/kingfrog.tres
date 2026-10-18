@@ -17,4 +17,5 @@ unit_description = "King Frog expects obedience. Long live the King Frog."
 unit_side = 1
 hit_points = 15
 abilities = Array[ExtResource("1_r15hh")]([ExtResource("2_1y7wq"), ExtResource("3_t37rh"), ExtResource("4_r15hh")])
+is_king = true
 metadata/_custom_type_script = "uid://cobklneaf4pkw"

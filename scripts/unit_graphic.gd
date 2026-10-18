@@ -50,6 +50,10 @@ func play_sound(sound: AudioStream) -> void:
 		%AudioStreamPlayer2D.play()
 
 
+func is_king() -> bool:
+	return _unit_stats.is_king
+
+
 func stop_sound() -> void:
 	%AudioStreamPlayer2D.stop()
 

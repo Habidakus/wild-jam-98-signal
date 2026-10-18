@@ -10,3 +10,4 @@ enum UnitSide { UNDEFINED, FROG, MOTH }
 @export var unit_side: UnitSide = UnitSide.UNDEFINED
 @export var hit_points: int = 1
 @export var abilities: Array[Ability] = []
+@export var is_king: bool = false
