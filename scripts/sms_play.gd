@@ -332,11 +332,11 @@ func _on_pass() -> void:
 
 
 func _lose() -> void:
-	pass
+	our_state_machine.switch_state("sms_defeat")
 
 
 func _win() -> void:
-	pass
+	our_state_machine.switch_state("sms_victory")
 
 
 func _kill(target: UnitGraphic, tween: Tween) -> void:
