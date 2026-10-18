@@ -11,7 +11,7 @@ stream_1/stream = ExtResource("2_31jwe")
 
 [resource]
 script = ExtResource("3_348ot")
-ability_name = "Charge"
+ability_name = "Crush"
 ability_description = "Impale with your unicorn horn"
 activation_sound = SubResource("AudioStreamRandomizer_feofu")
 mechanism = 10

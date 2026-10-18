@@ -11,7 +11,7 @@
 
 [resource]
 script = ExtResource("5_8r7vf")
-unit_name = "Unifrog"
+unit_name = "Charger Frog"
 texture = ExtResource("7_kteuo")
 sprite_frames = ExtResource("6_kteuo")
 unit_description = "Uni Frog's birthday is in early January and frankly she's expecting a better present than last year."

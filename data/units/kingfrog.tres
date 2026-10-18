@@ -10,7 +10,7 @@
 
 [resource]
 script = ExtResource("5_f0jxv")
-unit_name = "Kingfrog"
+unit_name = "King Frog"
 texture = ExtResource("7_r15hh")
 sprite_frames = ExtResource("5_t37rh")
 unit_description = "King Frog expects obedience. Long live the King Frog."

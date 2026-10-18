@@ -10,7 +10,7 @@
 
 [resource]
 script = ExtResource("5_fyo8y")
-unit_name = "Speedfrog"
+unit_name = "Spotter Frog"
 texture = ExtResource("7_6hw3k")
 sprite_frames = ExtResource("6_6hw3k")
 unit_description = "Speed Frog ... woooooooosh ... Hey where'd he go?"
