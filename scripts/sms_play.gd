@@ -865,6 +865,9 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 						if child_at is MapObjectGraphic:
 							if (child_at as MapObjectGraphic).blocks_walk():
 								continue
+						elif child_at is UnitGraphic:
+							if child_at != ug and not child_at.is_dead():
+								continue
 					if walk_path.has(step_dest):
 						if walk_path[step_dest][0] < distance:
 							continue
@@ -907,11 +910,11 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 			elif full_path[full_path.size() - 1] != closest_map_loc_to_mouse:
 				full_path.append(closest_map_loc_to_mouse)
 			_animation_payload = [ug_map_loc, facing, full_path, final_facing]
-			_animation_tween.tween_method(_animate_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
+			_animation_tween.tween_method(_animate_frog_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
 			var final_position: Vector2 = %TerrainLayer.map_to_local(closest_map_loc_to_mouse)
 			_animation_tween.tween_callback(Callable(%AbilityLayer, "clear"))
 			_animation_tween.tween_property(%Camera2D, "position", final_position, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-			_animation_tween.tween_callback(_animate_walk.bind(2.0))
+			_animation_tween.tween_callback(_animate_frog_walk.bind(2.0))
 			_play_state = PlayState.ANIMATING_COMMAND
 
 
@@ -950,7 +953,7 @@ func _animate_frog_charge(fraction: float) -> void:
 	_update_fog_of_war()
 
 
-func _animate_walk(fraction: float) -> void:
+func _animate_frog_walk(fraction: float) -> void:
 	var ug: UnitGraphic = _get_current_unit_graphic()
 	if fraction > 1.0:
 		# end of animation
