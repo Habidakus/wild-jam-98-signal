@@ -1,0 +1,13 @@
+Features:
+- make the squares along a mothman's attack path full bright before they attack, so that the player can see the full attack as it happens
+- add map 2
+- provide new frog type unlock after maps 1 and 2 and for maps 2 and 3 let the player pick three frogs
+- place characer specific data on the action bar (frog name, portrait, remaining APs)
+
+Code Rot:
+- replace the haphazard _animation_tween handling with an actual board animation stack
+- remove the "center" button, it's useless now
+
+Bug Fixes:
+- the charge "potential spot to go to" shouldn't be on mouse-click, but always.
+- confirm that you can select between possible moth targets with charge
