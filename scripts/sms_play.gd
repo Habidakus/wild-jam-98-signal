@@ -35,6 +35,8 @@ var target_potential_scene: PackedScene = preload("res://scenes/potential_target
 var _terrain_children: Array[Node] = []
 
 
+const STANDARD_ZOOM: Vector2 = Vector2.ONE * 1.25
+const CROAK_ZOOM: Vector2 = Vector2.ONE * 0.7
 const DEATH_TIME: float = 0.25
 const TURN_TIME: float = 0.5
 const HOP_TIME: float = 0.5
@@ -332,7 +334,7 @@ func _advance_to_next_unit() -> void:
 
 func _process_animating_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
 	%PlayerControlls.hide()
-	if _animation_tween != null and _animation_tween.is_running():
+	if _animation_stack.update():
 		return
 	ug.stop_sound()
 	if _ap_remaining <= 0:
@@ -425,31 +427,35 @@ func _apply_death(target: UnitGraphic) -> void:
 			_lose()
 
 
-func _frog_kill(target: UnitGraphic) -> void:
-	_apply_death(target)
+#func _frog_kill(target: UnitGraphic) -> void:
+	#_apply_death(target)
 
 
-func _kill(target: UnitGraphic, tween: Tween) -> void:
+var _animation_stack: AnimationStack = AnimationStack.new()
+func _kill(target: UnitGraphic) -> void:
 	%AbilityLayer.clear()
-	if tween != null:
-		tween.tween_property(%Camera2D, "position", target.position, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_animation_stack.add_command(Callable(_kill_animation_command).bind(_get_current_unit_graphic(), target, _selected_ability))
+
+
+func _kill_animation_command(ac: AnimationCommand, _killer: UnitGraphic, target: UnitGraphic, ability: Ability) -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(%Camera2D, "position", target.position, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	var delay: float = DEATH_TIME
-	if _selected_ability != null:
-		var ug: UnitGraphic = _get_current_unit_graphic()
-		if _selected_ability.activation_sound != null:
-			ug.play_sound(_selected_ability.activation_sound)
-			delay += _selected_ability.activation_sound.get_length()
-	if tween != null:
-		tween.tween_interval(delay)
-	_apply_death(target)
+	if ability != null:
+		if ability.activation_sound != null:
+			tween.tween_callback(Callable(target, "play_sound").bind(ability.activation_sound))
+			delay += ability.activation_sound.get_length()
+	tween.tween_interval(delay)
+	tween.tween_callback(_apply_death.bind(target))
+	ac.queue_finish(tween, _animation_stack)
 	_selected_ability = null
-	_ap_remaining = 0
+	if target == _get_current_unit_graphic():
+		_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
 func _die() -> void:
-	_animation_tween = create_tween()
-	_kill(_get_current_unit_graphic(), _animation_tween)
+	_kill(_get_current_unit_graphic())
 
 
 func _on_center() -> void:
@@ -464,13 +470,13 @@ func _on_center() -> void:
 	var second_global_pos: Vector2 = current_global_pos + 2.0 * delta_global_pos / 3.0
 	var third_global_pos: Vector2 = dest_global_pos
 	
-	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.4, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.tween_property(%Camera2D, "zoom", CROAK_ZOOM, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_camera_tween.parallel()
 	_camera_tween.tween_property(%Camera2D, "global_position", first_global_pos, 0.20).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
 	_camera_tween.tween_property(%Camera2D, "global_position", second_global_pos, 0.20)
 	
-	_camera_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 1.25, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_camera_tween.tween_property(%Camera2D, "zoom", STANDARD_ZOOM, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	_camera_tween.parallel()
 	_camera_tween.tween_property(%Camera2D, "global_position", third_global_pos, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 
@@ -657,8 +663,7 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 					_play_state = PlayState.ANIMATING_COMMAND
 					moth.start_attack_animation()
 					_ap_remaining -= _selected_ability.ap_cost
-					_animation_tween = create_tween()
-					_kill(frog, _animation_tween)
+					_kill(frog)
 					return true
 			return false
 		Ability.AbilityMechanism.CHARGE:
@@ -690,7 +695,7 @@ func _try_do_moth_move(ability: Ability, moth_map_loc: Vector2i, all_frogs: Arra
 			if best_path.is_empty() or path.size() < best_path.size():
 				best_path = path
 	if not best_path.is_empty():
-		_move_along_path(ability.ability_range, best_path)
+		_move_moth_along_path_stopping_at_light(ability.ability_range, best_path)
 		return true
 	for frog: UnitGraphic in all_frogs:
 		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
@@ -700,28 +705,23 @@ func _try_do_moth_move(ability: Ability, moth_map_loc: Vector2i, all_frogs: Arra
 			if best_path.is_empty() or path.size() < best_path.size():
 				best_path = path
 	if not best_path.is_empty():
-		_move_along_path(ability.ability_range, best_path)
+		_move_moth_along_path_stopping_at_light(ability.ability_range, best_path)
 		return true
 	return false
 
 
-func _move_along_path(ability_range: int, path: Array[Vector2i]) -> void:
+func _move_moth_along_path_stopping_at_light(ability_range: int, path: Array[Vector2i]) -> void:
 	_play_state = PlayState.ANIMATING_COMMAND
 	_ap_remaining -= _selected_ability.ap_cost
-	_animation_payload = []
+	var dark_path: Array[Vector2i] = []
 	for map_loc: Vector2i in path:
 		if _is_map_loc_in_light(map_loc):
 			break
-		_animation_payload.append(map_loc)
+		dark_path.append(map_loc)
 		ability_range -= 1
 		if ability_range <= 0:
 			break
-	_animation_tween = create_tween()
-	var duration: float = 0.1
-	if _selected_ability.activation_sound != null:
-		duration += _selected_ability.activation_sound.get_length()
-		_get_current_unit_graphic().play_sound(_selected_ability.activation_sound)
-	_animation_tween.tween_method(_animate_moth_charge, 0.0, 1.0, duration)
+	_animation_stack.add_command(Callable(_moth_move_animation_command).bind(_selected_ability.activation_sound, dark_path))
 
 
 func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
@@ -732,10 +732,8 @@ func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Ar
 		if not path.is_empty():
 			_play_state = PlayState.ANIMATING_COMMAND
 			_ap_remaining -= _selected_ability.ap_cost
-			_animation_payload = path
-			_animation_tween = create_tween()
-			_animation_tween.tween_method(_animate_moth_charge, 0.0, 1.0, CHARGE_TIME * path.size())
-			_kill(frog, _animation_tween)
+			_animation_stack.add_command(Callable(_moth_move_animation_command).bind(_selected_ability.activation_sound, path))
+			_kill(frog)
 			return true
 	return false
 
@@ -833,25 +831,100 @@ func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_p
 		_target_instance.set_facing(final_facing)
 	if not mouse_pressed:
 		return
+	_animation_stack.add_command(Callable(_move_camera_animation_command).bind(closest_foe_to_mouse.position, 0.1))
+	_animation_stack.add_command(Callable(_frog_charge_animation_command).bind(closest_foe_to_mouse, path_to_foe))
+	_kill(closest_foe_to_mouse)
 	#_ap_remaining -= _selected_ability.ap_cost
-	_animation_payload = [closest_foe_to_mouse, path_to_foe]
-	_animation_tween = create_tween()
-	_animation_tween.tween_property(%Camera2D, "position", closest_foe_to_mouse.position, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	_animation_tween.parallel()
-	_animation_tween.tween_method(_animate_frog_charge, 0.0, 1.0, CHARGE_TIME)
-	_animation_tween.tween_callback(_animate_frog_charge.bind(2.0))
-	_animation_tween.tween_callback(Callable(closest_foe_to_mouse, "play_sound").bind(_selected_ability.activation_sound))
-	_animation_tween.tween_callback(_frog_kill.bind(closest_foe_to_mouse))
-	_animation_tween.tween_interval(_selected_ability.activation_sound.get_length())
 	_ap_remaining = 0
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
+func _move_camera_animation_command(ac: AnimationCommand, pos: Vector2, duration: float) -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(%Camera2D, "position", pos, duration).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	ac.queue_finish(tween, _animation_stack)
+
+
+func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, dark_path: Array[Vector2i]) -> void:
+	var moth_ug: UnitGraphic = _get_current_unit_graphic()
+	var tween: Tween = create_tween()
+	var duration: float = CHARGE_TIME
+	if sound != null:
+		duration = max(sound.get_length(), duration)
+		tween.tween_callback(Callable(moth_ug, "play_sound").bind(sound))
+	for i in range(1, dark_path.size()):
+		var arriving_spot: Vector2i = dark_path[i]
+		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
+		tween.tween_property(moth_ug, "position", arriving_pos, duration / (dark_path.size() - 1.0))
+	var final_pos: Vector2 = %TerrainLayer.map_to_local(dark_path.back())
+	tween.tween_property(moth_ug, "position", final_pos, 0.0)
+	tween.tween_callback(Callable(moth_ug, "start_idle_animation"))
+	tween.tween_callback(Callable(self, "_update_fog_of_war"))
+	ac.queue_finish(tween, _animation_stack)
+
+
+func _frog_hop_animation_command(ac: AnimationCommand, destination: Vector2) -> void:
+	var frog_ug: UnitGraphic = _get_current_unit_graphic()
+	var tween: Tween = create_tween()
+	tween.tween_callback(Callable(%AbilityLayer, "clear"))
+	tween.tween_property(frog_ug, "position", destination, HOP_TIME)
+	tween.parallel()
+	tween.tween_method(Callable(frog_ug, "set_hop_animation_frame"), 0.0, 1.0, HOP_TIME)
+	tween.tween_callback(Callable(frog_ug, "start_idle_animation"))
+	tween.tween_callback(_update_fog_of_war)
+	_move_camera_animation_command(ac, destination, 0.1) # will clean up AnimationCommand for us
+
+
+func _frog_charge_animation_command(ac: AnimationCommand, target: UnitGraphic, path_frog_to_moth: Array[Vector2i]) -> void:
+	var frog_ug: UnitGraphic = _get_current_unit_graphic()
+	var tween: Tween = create_tween()
+	for i in range(1, path_frog_to_moth.size()):
+		var leaving_spot: Vector2i = path_frog_to_moth[i - 1]
+		var arriving_spot: Vector2i = path_frog_to_moth[i]
+		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
+		var facing = arriving_spot - leaving_spot
+		tween.tween_callback(Callable(self, "_update_current_unit_facing").bind(facing))
+		tween.tween_callback(Callable(self, "_update_fog_of_war"))
+		tween.tween_property(frog_ug, "position", arriving_pos, CHARGE_TIME / (path_frog_to_moth.size() - 1.0))
+	tween.tween_property(frog_ug, "position", target.position, 0.0)
+	tween.tween_callback(Callable(frog_ug, "start_idle_animation"))
+	tween.tween_callback(Callable(self, "_update_fog_of_war"))
+	ac.queue_finish(tween, _animation_stack)
+
+
+func _frog_walk_animation_command(ac: AnimationCommand, path: Array, final_facing: Vector2i) -> void:
+	var frog_ug: UnitGraphic = _get_current_unit_graphic()
+	frog_ug.start_hop_animation(true)
+	frog_ug.play_sound(_selected_ability.activation_sound)
+	var tween: Tween = create_tween()
+	for i in range(1, path.size()):
+		var leaving_spot: Vector2i = path[i - 1]
+		var arriving_spot: Vector2i = path[i]
+		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
+		var facing = arriving_spot - leaving_spot
+		tween.tween_callback(Callable(self, "_update_current_unit_facing").bind(facing))
+		tween.tween_callback(Callable(self, "_update_fog_of_war"))
+		tween.tween_property(frog_ug, "position", arriving_pos, WALK_TIME) # / (path.size() - 1.0))
+	tween.tween_callback(Callable(%AbilityLayer, "clear"))
+	var final_pos: Vector2 = %TerrainLayer.map_to_local(path.back())
+	tween.tween_property(frog_ug, "position", final_pos, 0.0)
+	tween.tween_callback(Callable(frog_ug, "start_idle_animation"))
+	tween.tween_callback(Callable(self, "_update_current_unit_facing").bind(final_facing))
+	tween.tween_callback(Callable(self, "_update_fog_of_war"))
+	ac.queue_finish(tween, _animation_stack)
+
+
 var ping_scene: PackedScene = preload("res://scenes/ping.tscn")
-const SONAR_SPEED: float = 320.0
 func _process_awaiting_ribbit_command(ug: UnitGraphic) -> void:
 	%AbilityLayer.clear()
-	ug.play_sound(_selected_ability.activation_sound)
+	_ap_remaining -= _selected_ability.ap_cost
+	_animation_stack.add_command(Callable(_ribbit_animation_command).bind(ug))
+	_play_state = PlayState.ANIMATING_COMMAND
+
+
+const SONAR_SPEED: float = 320.0
+func _ribbit_animation_command(ac: AnimationCommand, source: UnitGraphic) -> void:
+	source.play_sound(_selected_ability.activation_sound)
 	var max_delay: float = 0
 	for entity: Array in _unit_list:
 		var entity_ug: UnitGraphic = entity[0]
@@ -859,20 +932,19 @@ func _process_awaiting_ribbit_command(ug: UnitGraphic) -> void:
 			continue
 		if entity_ug._unit_stats.unit_side != Unit.UnitSide.MOTH:
 			continue
-		var dist: float = (ug.position - entity_ug.position).length()
+		var dist: float = (source.position - entity_ug.position).length()
 		var delay: float = dist / SONAR_SPEED
 		var radar_tween: Tween = create_tween()
 		radar_tween.tween_interval(delay)
 		radar_tween.tween_callback(_create_ping.bind(entity_ug.position))
 		if delay > max_delay:
 			max_delay = delay
-	_ap_remaining -= _selected_ability.ap_cost
-	_animation_tween = create_tween()
-	_animation_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 0.7, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	var zoom_tween: Tween = create_tween()
+	zoom_tween.tween_property(%Camera2D, "zoom", CROAK_ZOOM, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	if max_delay > 1.8 + 0.8:
-		_animation_tween.tween_interval(max_delay - (1.8 + 0.8))
-	_animation_tween.tween_property(%Camera2D, "zoom", Vector2.ONE * 1.25, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	_play_state = PlayState.ANIMATING_COMMAND
+		zoom_tween.tween_interval(max_delay - (1.8 + 0.8))
+	zoom_tween.tween_property(%Camera2D, "zoom", STANDARD_ZOOM, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	ac.queue_finish(zoom_tween, _animation_stack)
 
 
 func _create_ping(pos: Vector2) -> void:
@@ -881,7 +953,7 @@ func _create_ping(pos: Vector2) -> void:
 	%AbilityLayer.add_child(ping)
 
 
-func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
+func _process_awaiting_walk_command(ug: UnitGraphic, _facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
 	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
 	var walk_path: Dictionary[Vector2i, Array] = {}
 	var closest_squared_dist_to_mouse: float = INF
@@ -940,82 +1012,16 @@ func _process_awaiting_walk_command(ug: UnitGraphic, facing: Vector2i, mouse_pre
 		if best_atlas != Vector2i.MIN:
 			%AbilityLayer.set_cell(closest_map_loc_to_mouse, WALK_SOURCE_ID, best_atlas)
 		if mouse_pressed:
-			ug.start_hop_animation(true)
 			_ap_remaining -= _selected_ability.ap_cost
-			ug.play_sound(_selected_ability.activation_sound)
-			_animation_tween = create_tween()
 			var full_path: Array = mouse_path.duplicate()
 			if full_path.is_empty():
 				full_path.append(closest_map_loc_to_mouse)
 			elif full_path[full_path.size() - 1] != closest_map_loc_to_mouse:
 				full_path.append(closest_map_loc_to_mouse)
-			_animation_payload = [ug_map_loc, facing, full_path, final_facing]
-			_animation_tween.tween_method(_animate_frog_walk, 0.0, 1.0, WALK_TIME * mouse_path.size())
+			_animation_stack.add_command(Callable(_frog_walk_animation_command).bind(full_path, final_facing))
 			var final_position: Vector2 = %TerrainLayer.map_to_local(closest_map_loc_to_mouse)
-			_animation_tween.tween_callback(Callable(%AbilityLayer, "clear"))
-			_animation_tween.tween_property(%Camera2D, "position", final_position, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-			_animation_tween.tween_callback(_animate_frog_walk.bind(2.0))
+			_animation_stack.add_command(Callable(_move_camera_animation_command).bind(final_position, 0.4))
 			_play_state = PlayState.ANIMATING_COMMAND
-
-
-func _animate_moth_charge(fraction: float) -> void:
-	# TODO: Rather than an array of vectors, the mouse path should be an array of actions either:
-	# a) move single cell in a cardinal direction
-	# b) turn to another setting
-	# Then we can spend time turning and animate moving
-	var path: Array = _animation_payload
-	var path_size: int = path.size()
-	var index: int = int(clamp(0, path_size - 1, float(path_size) * fraction))
-	var ug: UnitGraphic = _get_current_unit_graphic()
-	var current_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
-	var map_loc: Vector2i = path[index]
-	if current_map_loc != map_loc:
-		var dir: Vector2i = map_loc - current_map_loc
-		_update_current_unit_facing(dir)
-	ug.position = %TerrainLayer.map_to_local(map_loc)
-	_update_fog_of_war()
-
-
-func _animate_frog_charge(fraction: float) -> void:
-	var moth_ug: UnitGraphic = _animation_payload[0]
-	var frog_ug: UnitGraphic = _get_current_unit_graphic()
-	if fraction > 1.0:
-		frog_ug.position = moth_ug.position
-		return
-	var path_frog_to_moth: Array[Vector2i] = _animation_payload[1]
-	var index: float = (float(path_frog_to_moth.size()) - 1.001) * fraction
-	var floor_index: int = int(index)
-	var ceiling_index: int = floor_index + 1
-	var ceiling_map_loc: Vector2i = path_frog_to_moth[ceiling_index]
-	var floor_map_loc: Vector2i = path_frog_to_moth[floor_index]
-	frog_ug.position = lerp(%TerrainLayer.map_to_local(floor_map_loc), %TerrainLayer.map_to_local(ceiling_map_loc), index - floor_index)
-	frog_ug.set_facing(ceiling_map_loc - floor_map_loc)
-	_update_fog_of_war()
-
-
-func _animate_frog_walk(fraction: float) -> void:
-	var ug: UnitGraphic = _get_current_unit_graphic()
-	if fraction > 1.0:
-		# end of animation
-		var final_facing: Vector2i = _animation_payload[3]
-		_update_current_unit_facing(final_facing)
-		ug.start_idle_animation()
-		_update_fog_of_war()
-		return
-	# TODO: Rather than an array of vectors, the mouse path should be an array of actions either:
-	# a) move single cell in a cardinal direction
-	# b) turn to another setting
-	# Then we can spend time turning and animate moving
-	var mouse_path: Array = _animation_payload[2]
-	var mps: int = mouse_path.size()
-	var index: int = int(clamp(0, mps - 1, float(mps) * fraction))
-	var current_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
-	var map_loc: Vector2i = mouse_path[index]
-	if current_map_loc != map_loc:
-		var dir: Vector2i = map_loc - current_map_loc
-		_update_current_unit_facing(dir)
-	ug.position = %TerrainLayer.map_to_local(map_loc)
-	_update_fog_of_war()
 
 
 func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
@@ -1053,8 +1059,6 @@ func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pres
 			ug.start_hop_animation(false)
 			_ap_remaining -= _selected_ability.ap_cost
 			ug.play_sound(_selected_ability.activation_sound)
-			_animation_tween = create_tween()
-			_animation_payload = [ug.position, %AbilityLayer.map_to_local(closest_map_loc_to_mouse)]
 			var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
 			delta = delta / delta.length()
 			if delta != facing:
@@ -1062,33 +1066,20 @@ func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pres
 					var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
 					if randi() % 2 == 0:
 						mid = mid * Vector2i(-1, -1)
-					_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(mid), TURN_TIME / 2.0)
-					_animation_tween.tween_method(_animate_turn, Vector2(mid), Vector2(delta), TURN_TIME / 2.0)
+					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(mid))
+					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(delta))
 				else:
-					_animation_tween.tween_method(_animate_turn, Vector2(facing), Vector2(delta), TURN_TIME / 2.0)
-			_animation_tween.tween_method(_animate_hop, 0.0, 1.0, HOP_TIME)
-			_animation_tween.tween_callback(_animate_hop.bind(2.0))
+					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(delta))
+			_animation_stack.add_command(Callable(_frog_hop_animation_command).bind(%AbilityLayer.map_to_local(closest_map_loc_to_mouse)))
 			_play_state = PlayState.ANIMATING_COMMAND
 
 
-var _animation_tween: Tween
-var _animation_payload: Array
-func _animate_hop(fraction: float) -> void:
-	var ug: UnitGraphic = _get_current_unit_graphic()
-	if fraction <= 1.0:
-		ug.position = lerp(_animation_payload[0], _animation_payload[1], fraction)
-		ug.set_hop_animation_frame(fraction)
-	else:
-		%AbilityLayer.clear()
-		ug.position = _animation_payload[1]
-		ug.start_idle_animation()
-	%Camera2D.position = ug.position
-	_update_fog_of_war()
-
-
-func _animate_turn(dir: Vector2) -> void:
-	_update_current_unit_facing(dir)
-	_update_fog_of_war()
+func _turn_frog_animation_command(ac: AnimationCommand, dir: Vector2) -> void:
+	var tween: Tween = create_tween()
+	tween.tween_interval(TURN_TIME)
+	tween.tween_callback(Callable(_update_current_unit_facing).bind(dir))
+	tween.tween_callback(Callable(_update_fog_of_war))
+	ac.queue_finish(tween, _animation_stack)
 
 
 func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
