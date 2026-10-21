@@ -484,6 +484,8 @@ func _on_center() -> void:
 func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -> void:
 	_selected_ability = null
 	_ap_remaining = ug._unit_stats.action_points
+	%UnitImage.texture = ug._unit_stats.texture
+	%UnitName.text = ug._unit_stats.unit_name
 	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
 	var die_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.DIE_IN_LIGHT)
 	if stun_in_light != null or die_in_light != null:
