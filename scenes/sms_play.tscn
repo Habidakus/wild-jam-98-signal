@@ -60,11 +60,13 @@ size_flags_vertical = 4
 alignment = 1
 
 [node name="VSeparator" type="VSeparator" parent="UI/PlayerControlls" unique_id=360561966]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="CenterButton" type="Button" parent="UI/PlayerControlls" unique_id=328528463]
 unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 text = "Center"

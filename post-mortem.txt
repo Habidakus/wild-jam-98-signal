@@ -6,7 +6,7 @@ Features:
 
 Code Rot:
 - (done) replace the haphazard _animation_tween handling with an actual board animation stack
-- remove the "center" button, it's useless now
+- (done) remove the "center" button, it's useless now
 
 Bug Fixes:
 - the charge "potential spot to go to" shouldn't be on mouse-click, but always.
