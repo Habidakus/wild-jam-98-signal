@@ -1,5 +1,5 @@
 Features:
-- make the squares along a mothman's attack path full bright before they attack, so that the player can see the full attack as it happens
+- (done) make the squares along a mothman's attack path full bright before they attack, so that the player can see the full attack as it happens
 - add map 2
 - provide new frog type unlock after maps 1 and 2 and for maps 2 and 3 let the player pick three frogs
 - place characer specific data on the action bar (frog name, portrait, remaining APs)

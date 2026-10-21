@@ -547,6 +547,8 @@ func _try_get_path(start: Vector2i, end: Vector2i, path_range: int, path_logic: 
 
 func _is_map_loc_in_light(map_loc: Vector2i) -> bool:
 	return %FogOfWarLayer.get_cell_atlas_coords(map_loc).x < 3
+func _is_map_loc_completely_dark(map_loc: Vector2i) -> bool:
+	return %FogOfWarLayer.get_cell_atlas_coords(map_loc).x == 4
 
 
 func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: int, ignore_nodes: Array[Node], avoid_light: bool, fly: bool) -> Array[Vector2i]:
@@ -730,9 +732,10 @@ func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Ar
 		var path_logic: PathLogic = PathLogic.DIRECT_FLY if fly else PathLogic.DIRECT_RUN
 		var path: Array[Vector2i] = _try_get_path(moth_map_loc, frog_map_loc, ability.ability_range, path_logic, [frog], true)
 		if not path.is_empty():
+			_update_fog_of_war(path)
 			_play_state = PlayState.ANIMATING_COMMAND
 			_ap_remaining -= _selected_ability.ap_cost
-			_animation_stack.add_command(Callable(_moth_move_animation_command).bind(_selected_ability.activation_sound, path))
+			_animation_stack.add_command(Callable(_moth_move_animation_command).bind(null, path))
 			_kill(frog)
 			return true
 	return false
@@ -845,18 +848,26 @@ func _move_camera_animation_command(ac: AnimationCommand, pos: Vector2, duration
 	ac.queue_finish(tween, _animation_stack)
 
 
-func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, dark_path: Array[Vector2i]) -> void:
+func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, path: Array[Vector2i]) -> void:
 	var moth_ug: UnitGraphic = _get_current_unit_graphic()
 	var tween: Tween = create_tween()
-	var duration: float = CHARGE_TIME
+	var duration: float = 0 # CHARGE_TIME
+	
+	for map_loc: Vector2i in path:
+		if not _is_map_loc_completely_dark(map_loc):
+			duration += CHARGE_TIME
 	if sound != null:
 		duration = max(sound.get_length(), duration)
 		tween.tween_callback(Callable(moth_ug, "play_sound").bind(sound))
-	for i in range(1, dark_path.size()):
-		var arriving_spot: Vector2i = dark_path[i]
+	for i in range(1, path.size()):
+		var leaving_spot: Vector2i = path[i - 1]
+		var arriving_spot: Vector2i = path[i]
 		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
-		tween.tween_property(moth_ug, "position", arriving_pos, duration / (dark_path.size() - 1.0))
-	var final_pos: Vector2 = %TerrainLayer.map_to_local(dark_path.back())
+		var d: float = 0.0
+		if not _is_map_loc_completely_dark(arriving_spot) or not _is_map_loc_completely_dark(leaving_spot):
+			d = duration / (path.size() - 1.0)
+		tween.tween_property(moth_ug, "position", arriving_pos, d)
+	var final_pos: Vector2 = %TerrainLayer.map_to_local(path.back())
 	tween.tween_property(moth_ug, "position", final_pos, 0.0)
 	tween.tween_callback(Callable(moth_ug, "start_idle_animation"))
 	tween.tween_callback(Callable(self, "_update_fog_of_war"))
@@ -1088,7 +1099,7 @@ func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facin
 	_update_fog_of_war()
 
 
-func _update_fog_of_war() -> void:
+func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
 	%FogOfWarLayer.clear()
 	var light_cones: Dictionary[int, float] = {}
 	for entry: Array in _unit_list:
@@ -1099,6 +1110,8 @@ func _update_fog_of_war() -> void:
 			var unit_light_range: int = illumination.ability_range
 			var unit_facing: Vector2i = entry[1]
 			_generate_light_cones(unit_map_loc, unit_light_range, unit_facing, light_cones)
+		for fullbright:Vector2i in extra_fullbright:
+			light_cones[fullbright.x * _max_y + fullbright.y] = 0.0
 	for x in range(-1, _max_x + 1):
 		for y in range(-1, _max_y + 1):
 			var coord: int = x * _max_y + y
