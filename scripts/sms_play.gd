@@ -33,6 +33,14 @@ var _mothman_resource = preload("res://data/units/mothman.tres")
 var _target_scene: PackedScene = preload("res://scenes/target.tscn")
 var target_potential_scene: PackedScene = preload("res://scenes/potential_target.tscn")
 var _terrain_children: Array[Node] = []
+var _ap_textures: Dictionary[Vector2i, Resource] = {
+	Vector2i(1, 0): preload("res://art/temp/AP/AP10.png"),
+	Vector2i(2, 0): preload("res://art/temp/AP/AP20.png"),
+	Vector2i(2, 1): preload("res://art/temp/AP/AP21.png"),
+	Vector2i(3, 0): preload("res://art/temp/AP/AP30.png"),
+	Vector2i(3, 1): preload("res://art/temp/AP/AP31.png"),
+	Vector2i(3, 2): preload("res://art/temp/AP/AP32.png"),
+}
 
 
 const STANDARD_ZOOM: Vector2 = Vector2.ONE * 1.25
@@ -340,6 +348,7 @@ func _process_animating_command(_delta: float, ug: UnitGraphic, _facing: Vector2
 	if _ap_remaining <= 0:
 		_advance_to_next_unit()
 	else:
+		%APRemaining.texture = _ap_textures[Vector2i(ug._unit_stats.action_points, ug._unit_stats.action_points - _ap_remaining)]
 		_play_state = PlayState.AWAITING_COMMAND_SELECTION
 
 
@@ -486,6 +495,7 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	_ap_remaining = ug._unit_stats.action_points
 	%UnitImage.texture = ug._unit_stats.texture
 	%UnitName.text = ug._unit_stats.unit_name
+	%APRemaining.texture = _ap_textures[Vector2i(_ap_remaining, 0)]
 	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
 	var die_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.DIE_IN_LIGHT)
 	if stun_in_light != null or die_in_light != null:

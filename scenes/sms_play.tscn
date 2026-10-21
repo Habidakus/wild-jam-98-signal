@@ -46,6 +46,7 @@ tile_set = ExtResource("4_s6t4g")
 
 [node name="PlayerControlls" type="HBoxContainer" parent="UI" unique_id=254735753]
 unique_name_in_owner = true
+visible = false
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -89,13 +90,24 @@ custom_minimum_size = Vector2(50, 50)
 custom_maximum_size = Vector2(50, 50)
 layout_mode = 2
 
-[node name="UnitImage" type="TextureRect" parent="UI/PlayerControlls/VBoxContainer" unique_id=314104059]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/PlayerControlls/VBoxContainer" unique_id=579358128]
+custom_minimum_size = Vector2(0, 25)
+custom_maximum_size = Vector2(-1, 25)
+layout_mode = 2
+
+[node name="UnitImage" type="TextureRect" parent="UI/PlayerControlls/VBoxContainer/HBoxContainer" unique_id=314104059]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 25)
 custom_maximum_size = Vector2(-1, 25)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 6
+
+[node name="APRemaining" type="TextureRect" parent="UI/PlayerControlls/VBoxContainer/HBoxContainer" unique_id=1582002480]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(25, 25)
+custom_maximum_size = Vector2(25, 25)
+layout_mode = 2
 
 [node name="UnitName" type="Label" parent="UI/PlayerControlls/VBoxContainer" unique_id=1142505497]
 unique_name_in_owner = true
