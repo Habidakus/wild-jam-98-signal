@@ -3,6 +3,7 @@ Features:
 - (done) place characer specific data on the action bar (frog name, portrait, remaining APs)
 - add map 2
 - provide new frog type unlock after maps 1 and 2 and for maps 2 and 3 let the player pick three frogs
+- use %TerrainLayer.get_cell_tile_data().get_terrain_set() and get_terain() to determine the cost for moving into swamp squares... and maybe use a different sound effect when moving through them?
 
 Code Rot:
 - (done) replace the haphazard _animation_tween handling with an actual board animation stack
