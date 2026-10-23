@@ -916,6 +916,20 @@ func _frog_charge_animation_command(ac: AnimationCommand, target: UnitGraphic, p
 	ac.queue_finish(tween, _animation_stack)
 
 
+enum TerrainType { UNKNOWN, DIRT, SWAMP }
+func _get_terrain_type(map_loc: Vector2i) -> TerrainType:
+	var tile_data: TileData = %TerrainLayer.get_cell_tile_data(map_loc)
+	if tile_data == null:
+		return TerrainType.UNKNOWN
+	if tile_data.terrain_set != 0:
+		return TerrainType.UNKNOWN
+	if tile_data.terrain == 1:
+		return TerrainType.DIRT
+	if tile_data.terrain == 0:
+		return TerrainType.SWAMP
+	return TerrainType.UNKNOWN
+
+
 func _frog_walk_animation_command(ac: AnimationCommand, path: Array, final_facing: Vector2i) -> void:
 	var frog_ug: UnitGraphic = _get_current_unit_graphic()
 	frog_ug.start_hop_animation(true)
@@ -923,21 +937,16 @@ func _frog_walk_animation_command(ac: AnimationCommand, path: Array, final_facin
 	var tween: Tween = create_tween()
 	for i in range(1, path.size()):
 		var leaving_spot: Vector2i = path[i - 1]
-		var tile_data: TileData = %TerrainLayer.get_cell_tile_data(leaving_spot)
-		if tile_data != null:
-			if tile_data.terrain_set == 0:
-				if tile_data.terrain == 1:
-					if not playing_path_sound:
-						playing_path_sound = true
-						tween.tween_callback(Callable(frog_ug, "play_sound").bind(_selected_ability.activation_sound))
-				elif tile_data.terrain == 0:
-					playing_path_sound = false
-					tween.tween_callback(Callable(frog_ug, "play_sound").bind(_squish_sound))
-				else:
-					# ???
-					print("Frog on unknown terrain: %d" % [tile_data.terrain])
-			else:
-				print("Frog on unknown terrain set: %d" % [tile_data.terrain_set])
+		match _get_terrain_type(leaving_spot):
+			TerrainType.DIRT:
+				if not playing_path_sound:
+					playing_path_sound = true
+					tween.tween_callback(Callable(frog_ug, "play_sound").bind(_selected_ability.activation_sound))
+			TerrainType.SWAMP:
+				playing_path_sound = false
+				tween.tween_callback(Callable(frog_ug, "play_sound").bind(_squish_sound))
+			_:
+				print("Frog at %s on unknown terrain: %s" % [leaving_spot, TerrainType.keys()[_get_terrain_type(leaving_spot)]])
 		var arriving_spot: Vector2i = path[i]
 		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
 		var facing = arriving_spot - leaving_spot
@@ -1019,12 +1028,15 @@ func _process_awaiting_walk_command(ug: UnitGraphic, _facing: Vector2i, mouse_pr
 						elif child_at is UnitGraphic:
 							if child_at != ug and not child_at.is_dead():
 								continue
+					var step_cost: int = map_loc_dist + 1
+					if _get_terrain_type(step_dest) == TerrainType.SWAMP:
+						step_cost += 1
 					if walk_path.has(step_dest):
-						if walk_path[step_dest][0] < distance:
+						if walk_path[step_dest][0] <= step_cost:
 							continue
 					var new_path: Array = map_loc_path.duplicate()
 					new_path.append(map_loc)
-					walk_path[step_dest] = [map_loc_dist + 1, new_path]
+					walk_path[step_dest] = [step_cost, new_path]
 					var vector_to_mouse: Vector2 = mouse_local_pos - %TerrainLayer.map_to_local(step_dest) 
 					var dist_squared_from_mouse: float = vector_to_mouse.length_squared()
 					if dist_squared_from_mouse < closest_squared_dist_to_mouse:
