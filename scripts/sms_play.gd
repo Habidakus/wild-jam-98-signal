@@ -33,6 +33,7 @@ var _mothman_resource = preload("res://data/units/mothman.tres")
 var _target_scene: PackedScene = preload("res://scenes/target.tscn")
 var target_potential_scene: PackedScene = preload("res://scenes/potential_target.tscn")
 var _terrain_children: Array[Node] = []
+var _squish_sound: AudioStream = preload("res://sounds/swampfoot.tres")
 var _ap_textures: Dictionary[Vector2i, Resource] = {
 	Vector2i(1, 0): preload("res://art/temp/AP/AP10.png"),
 	Vector2i(2, 0): preload("res://art/temp/AP/AP20.png"),
@@ -918,10 +919,25 @@ func _frog_charge_animation_command(ac: AnimationCommand, target: UnitGraphic, p
 func _frog_walk_animation_command(ac: AnimationCommand, path: Array, final_facing: Vector2i) -> void:
 	var frog_ug: UnitGraphic = _get_current_unit_graphic()
 	frog_ug.start_hop_animation(true)
-	frog_ug.play_sound(_selected_ability.activation_sound)
+	var playing_path_sound: bool = false
 	var tween: Tween = create_tween()
 	for i in range(1, path.size()):
 		var leaving_spot: Vector2i = path[i - 1]
+		var tile_data: TileData = %TerrainLayer.get_cell_tile_data(leaving_spot)
+		if tile_data != null:
+			if tile_data.terrain_set == 0:
+				if tile_data.terrain == 1:
+					if not playing_path_sound:
+						playing_path_sound = true
+						tween.tween_callback(Callable(frog_ug, "play_sound").bind(_selected_ability.activation_sound))
+				elif tile_data.terrain == 0:
+					playing_path_sound = false
+					tween.tween_callback(Callable(frog_ug, "play_sound").bind(_squish_sound))
+				else:
+					# ???
+					print("Frog on unknown terrain: %d" % [tile_data.terrain])
+			else:
+				print("Frog on unknown terrain set: %d" % [tile_data.terrain_set])
 		var arriving_spot: Vector2i = path[i]
 		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
 		var facing = arriving_spot - leaving_spot
