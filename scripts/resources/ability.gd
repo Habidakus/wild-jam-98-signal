@@ -23,6 +23,7 @@ enum AbilityMechanism {
 @export var target: AbilityTarget = AbilityTarget.FOE
 @export var ability_range: int = 1
 @export var mechanism: AbilityMechanism = AbilityMechanism.UNDEFINED
+@export var imech: IMechanism
 @export var always_on: bool = false
 @export var angle: float = -1
 

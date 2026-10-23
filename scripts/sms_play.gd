@@ -378,6 +378,12 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 
 	var button: Button = Button.new()
 	button.text = ability.ability_name
+	if ability.imech != null:
+		if not ability.imech.is_enabled():
+			button.disabled = true
+		var tooltip: String = ability.imech.get_tooltip()
+		if not tooltip.is_empty():
+			button.tooltip_text = tooltip
 	button.set_meta("ability_order", max_order + 1)
 	button.set_meta("ability_index", ability_index)
 	button.button_up.connect(_on_ability_selected.bind(ability))
@@ -385,12 +391,58 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 	%PlayerControlls.move_child(button, max_order + 1)
 
 
+func get_ability_layer() -> TileMapLayer:
+	return %AbilityLayer
+
+
+func get_fog_of_war_layer() -> TileMapLayer:
+	return %FogOfWarLayer
+
+
+func get_terrain_layer() -> TileMapLayer:
+	return %TerrainLayer
+
+
+func get_camera() -> Camera2D:
+	return %Camera2D
+
+
+func queue_finish(ac: AnimationCommand, tween: Tween) -> void:
+	ac.queue_finish(tween, _animation_stack)
+
+
+func get_all_units() -> Array[UnitGraphic]:
+	var ret_val: Array[UnitGraphic] = []
+	for entry: Array in _unit_list:
+		ret_val.append(entry[0])
+	return ret_val
+
+
+func reduce_action_points(cost: int) -> void:
+	_ap_remaining = max(0, _ap_remaining - cost)
+
+
+func add_animation_command(command: Callable) -> void:
+	_animation_stack.add_command(command)
+
+
+func await_command() -> void:
+	_play_state = PlayState.ANIMATING_COMMAND
+
+
 func _on_ability_selected(ability: Ability) -> void:
 	%AbilityLayer.clear()
+	if _selected_ability != null:
+		if _selected_ability.imech != null:
+			_selected_ability.imech.on_unselect()
 	_selected_ability = ability
 	_play_state = PlayState.AWAITING_COMMAND_CONFIGURATION
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_await_mouse_release = true
+	assert(_selected_ability)
+	if _selected_ability.imech != null:
+		assert(_selected_ability.imech.does_support_human())
+		_selected_ability.imech.on_select(self, _get_current_unit_graphic(),  _selected_ability)
 
 
 func _on_pass() -> void:
@@ -771,15 +823,21 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 		print("Why is selected ability null?")
 		return
 	var mouse_local_pos: Vector2 = %TerrainLayer.get_local_mouse_position()
-	match _selected_ability.mechanism:
-		Ability.AbilityMechanism.HOP:
-			_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
-		Ability.AbilityMechanism.WALK:
-			_process_awaiting_walk_command(ug, facing, mouse_pressed, mouse_local_pos)
-		Ability.AbilityMechanism.RIBBIT_RADAR:
-			_process_awaiting_ribbit_command(ug)
-		Ability.AbilityMechanism.CHARGE:
-			_process_awaiting_charge_command(ug, facing, mouse_pressed, mouse_local_pos)
+	if _selected_ability.imech != null:
+		assert(_selected_ability.imech.does_support_human())
+		if mouse_pressed:
+			_selected_ability.imech.update(mouse_pressed, mouse_local_pos)
+	else:
+		match _selected_ability.mechanism:
+			Ability.AbilityMechanism.HOP:
+				_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
+			Ability.AbilityMechanism.WALK:
+				_process_awaiting_walk_command(ug, facing, mouse_pressed, mouse_local_pos)
+			Ability.AbilityMechanism.CHARGE:
+				_process_awaiting_charge_command(ug, facing, mouse_pressed, mouse_local_pos)
+			Ability.AbilityMechanism.RIBBIT_RADAR:
+				assert(false, "should have been handled by IMechanism")
+				#_process_awaiting_ribbit_command(ug)
 	_update_fog_of_war()
 	
 
@@ -960,45 +1018,6 @@ func _frog_walk_animation_command(ac: AnimationCommand, path: Array, final_facin
 	tween.tween_callback(Callable(self, "_update_current_unit_facing").bind(final_facing))
 	tween.tween_callback(Callable(self, "_update_fog_of_war"))
 	ac.queue_finish(tween, _animation_stack)
-
-
-var ping_scene: PackedScene = preload("res://scenes/ping.tscn")
-func _process_awaiting_ribbit_command(ug: UnitGraphic) -> void:
-	%AbilityLayer.clear()
-	_ap_remaining -= _selected_ability.ap_cost
-	_animation_stack.add_command(Callable(_ribbit_animation_command).bind(ug))
-	_play_state = PlayState.ANIMATING_COMMAND
-
-
-const SONAR_SPEED: float = 320.0
-func _ribbit_animation_command(ac: AnimationCommand, source: UnitGraphic) -> void:
-	source.play_sound(_selected_ability.activation_sound)
-	var max_delay: float = 0
-	for entity: Array in _unit_list:
-		var entity_ug: UnitGraphic = entity[0]
-		if entity_ug.is_dead():
-			continue
-		if entity_ug._unit_stats.unit_side != Unit.UnitSide.MOTH:
-			continue
-		var dist: float = (source.position - entity_ug.position).length()
-		var delay: float = dist / SONAR_SPEED
-		var radar_tween: Tween = create_tween()
-		radar_tween.tween_interval(delay)
-		radar_tween.tween_callback(_create_ping.bind(entity_ug.position))
-		if delay > max_delay:
-			max_delay = delay
-	var zoom_tween: Tween = create_tween()
-	zoom_tween.tween_property(%Camera2D, "zoom", CROAK_ZOOM, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	if max_delay > 1.8 + 0.8:
-		zoom_tween.tween_interval(max_delay - (1.8 + 0.8))
-	zoom_tween.tween_property(%Camera2D, "zoom", STANDARD_ZOOM, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	ac.queue_finish(zoom_tween, _animation_stack)
-
-
-func _create_ping(pos: Vector2) -> void:
-	var ping: Control = ping_scene.instantiate()
-	ping.position = pos
-	%AbilityLayer.add_child(ping)
 
 
 func _process_awaiting_walk_command(ug: UnitGraphic, _facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RibbitRadar" format=3 uid="uid://b5q40wa7fn8s6"]
+
+[ext_resource type="Script" uid="uid://cds73r4h845qu" path="res://scripts/resources/mechanisms/ribbit_radar.gd" id="1_v6am1"]
+
+[resource]
+script = ExtResource("1_v6am1")
+metadata/_custom_type_script = "uid://cds73r4h845qu"
