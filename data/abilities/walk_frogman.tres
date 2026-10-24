@@ -2,6 +2,7 @@
 
 [ext_resource type="AudioStream" uid="uid://bx2uxcxhqlt7t" path="res://sounds/gravel_footsteps_01.wav" id="1_k0ote"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_ygidl"]
+[ext_resource type="Resource" uid="uid://hne1f7ugf27p" path="res://data/mechanisms/frog_walk.tres" id="2_mtku1"]
 
 [resource]
 script = ExtResource("1_ygidl")
@@ -10,4 +11,5 @@ activation_sound = ExtResource("1_k0ote")
 target = 1
 ability_range = 6
 mechanism = 3
+imech = ExtResource("2_mtku1")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

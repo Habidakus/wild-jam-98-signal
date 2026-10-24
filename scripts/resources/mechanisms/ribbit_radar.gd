@@ -5,16 +5,12 @@ const SONAR_SPEED: float = 320.0
 var ping_scene: PackedScene = preload("res://scenes/ping.tscn")
 
 
-func is_enabled() -> bool:
+func is_enabled(_play: Play, _ug: UnitGraphic) -> bool:
 	return true
 
 
 func does_support_human() -> bool:
 	return true
-
-
-func get_tooltip() -> String:
-	return "Find all mothmen in the darkness"
 
 
 func update(_mouse_pressed: bool, _mouse_local_pos: Vector2) -> void:
@@ -60,7 +56,7 @@ func _create_ping(pos: Vector2, ability_layer: TileMapLayer) -> void:
 
 
 func on_unselect() -> void:
-	assert(false, "Should not be invoked")
+	pass
 
 
 # Foe considerations
@@ -68,9 +64,8 @@ func does_support_artificial_opponent() -> bool:
 	return false
 
 
-func is_better_than(other: IMechanism) -> bool:
-	assert(false, "Should not be invoked")
-	return false
+func get_priority() -> int:
+	return 0
 
 
 func invoke() -> void:

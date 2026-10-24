@@ -3,17 +3,17 @@ class_name Ability extends Resource
 enum AbilityTarget { UNDEFINED, SELF, ALLY, FOE }
 enum AbilityMechanism { 
 	UNDEFINED,
-	DAMAGE,
-	PULL,
-	WALK,			# FUNCTIONAL
-	HOP,			# COMPLETED
-	FLY,
-	ILLUMINATE,		# COMPLETED
-	DIE_IN_LIGHT,	# COMPLETED
-	STUN_IN_LIGHT,	# COMPLETED
-	RIBBIT_RADAR,
-	CHARGE,
-	CHARGE_WITH_FLY,
+	DAMAGE,			# 0
+	PULL,			# 1
+	WALK,			# 3
+	HOP,			# 1
+	FLY,			# 1
+	ILLUMINATE,		# 2
+	DIE_IN_LIGHT,	# 1
+	STUN_IN_LIGHT,	# 1
+	RIBBIT_RADAR,	# 1 - converted
+	CHARGE,			# 2
+	CHARGE_WITH_FLY,# 1
 }
 
 @export var ability_name: String
