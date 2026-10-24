@@ -2,6 +2,7 @@
 
 [ext_resource type="AudioStream" uid="uid://bedbl4f74fjxy" path="res://sounds/moth_flight_02.wav" id="1_0n0yb"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="2_10ki8"]
+[ext_resource type="Resource" uid="uid://rca6h3580mx8" path="res://data/mechanisms/moth_fly.tres" id="2_kgxju"]
 
 [resource]
 script = ExtResource("2_10ki8")
@@ -10,4 +11,5 @@ activation_sound = ExtResource("1_0n0yb")
 target = 1
 ability_range = 5
 mechanism = 5
+imech = ExtResource("2_kgxju")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

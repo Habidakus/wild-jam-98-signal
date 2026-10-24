@@ -731,6 +731,11 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 	var moth: UnitGraphic = _get_current_unit_graphic()
 	var moth_map_loc: Vector2i = %TerrainLayer.local_to_map(moth.position)
 	var all_frogs: Array[UnitGraphic] = _get_all_units_of_a_side(Unit.UnitSide.FROG)
+	if ability.imech != null:
+		ability.imech.setup(self, moth, ability)
+		if ability.imech.does_support_artificial_opponent():
+			if ability.imech.is_enabled():
+				return ability.imech.try_invoke()
 	match ability.mechanism:
 		Ability.AbilityMechanism.DAMAGE:
 			for frog: UnitGraphic in all_frogs:
@@ -746,58 +751,8 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, false)
 		Ability.AbilityMechanism.CHARGE_WITH_FLY:
 			return _try_do_moth_charge(ability, moth_map_loc, all_frogs, true)
-		Ability.AbilityMechanism.FLY:
-			return _try_do_moth_move(ability, moth_map_loc, all_frogs, true)
-		Ability.AbilityMechanism.WALK:
-			return _try_do_moth_move(ability, moth_map_loc, all_frogs, false)
-		#Ability.AbilityMechanism.PULL:
-		#Ability.AbilityMechanism.HOP:
-		#Ability.AbilityMechanism.RIBBIT_RADAR:
-		#Ability.AbilityMechanism.ILLUMINATE:
-		#Ability.AbilityMechanism.STUN_IN_LIGHT:
-		#Ability.AbilityMechanism.DIE_IN_LIGHT:
 	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [Ability.AbilityMechanism.keys()[ability.mechanism]])
 	return false
-
-
-func _try_do_moth_move(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
-	# First try an all dark path to frogs
-	var best_path: Array[Vector2i] = []
-	for frog: UnitGraphic in all_frogs:
-		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
-		var max_path_len: int = 100 if best_path.is_empty() else best_path.size()
-		var path: Array[Vector2i] = _try_get_path_direct_travel(moth_map_loc, frog_map_loc, max_path_len, [], true, fly)
-		if not path.is_empty():
-			if best_path.is_empty() or path.size() < best_path.size():
-				best_path = path
-	if not best_path.is_empty():
-		_move_moth_along_path_stopping_at_light(ability.ability_range, best_path)
-		return true
-	for frog: UnitGraphic in all_frogs:
-		var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
-		var max_path_len: int = 100 if best_path.is_empty() else best_path.size()
-		var path: Array[Vector2i] = _try_get_path_direct_travel(moth_map_loc, frog_map_loc, max_path_len, [], false, fly)
-		if not path.is_empty():
-			if best_path.is_empty() or path.size() < best_path.size():
-				best_path = path
-	if not best_path.is_empty():
-		_move_moth_along_path_stopping_at_light(ability.ability_range, best_path)
-		return true
-	return false
-
-
-func _move_moth_along_path_stopping_at_light(ability_range: int, path: Array[Vector2i]) -> void:
-	_play_state = PlayState.ANIMATING_COMMAND
-	_ap_remaining -= _selected_ability.ap_cost
-	var dark_path: Array[Vector2i] = []
-	for map_loc: Vector2i in path:
-		if _is_map_loc_in_light(map_loc):
-			break
-		dark_path.append(map_loc)
-		ability_range -= 1
-		if ability_range <= 0:
-			break
-	_animation_stack.add_command(Callable(_moth_move_animation_command).bind(_selected_ability.activation_sound, dark_path))
 
 
 func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Array[UnitGraphic], fly: bool) -> bool:
@@ -809,7 +764,7 @@ func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Ar
 			_update_fog_of_war(path)
 			_play_state = PlayState.ANIMATING_COMMAND
 			_ap_remaining -= _selected_ability.ap_cost
-			_animation_stack.add_command(Callable(_moth_move_animation_command).bind(null, path))
+			_animation_stack.add_command(Callable(_moth_charge_animation_command).bind(null, path))
 			_kill(frog)
 			return true
 	return false
@@ -846,7 +801,7 @@ func _move_camera_animation_command(ac: AnimationCommand, pos: Vector2, duration
 	ac.queue_finish(tween, _animation_stack)
 
 
-func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, path: Array[Vector2i]) -> void:
+func _moth_charge_animation_command(ac: AnimationCommand, sound: AudioStream, path: Array[Vector2i]) -> void:
 	var moth_ug: UnitGraphic = _get_current_unit_graphic()
 	var tween: Tween = create_tween()
 	var duration: float = 0 # CHARGE_TIME

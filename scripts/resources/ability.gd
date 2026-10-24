@@ -29,11 +29,15 @@ enum AbilityMechanism {
 
 
 static func sort_abilities_by_moth_priority(abilities: Array[Ability]) -> void:
-	abilities.sort_custom(func(a, b): return _get_moth_priority(a.mechanism) > _get_moth_priority(b.mechanism) )
+	abilities.sort_custom(func(a, b): 
+		return _get_moth_priority(a) > _get_moth_priority(b)
+	)
 
 
-static func _get_moth_priority(q_mechanism: AbilityMechanism) -> int:
-	match q_mechanism:
+static func _get_moth_priority(q_ability: Ability) -> int:
+	if q_ability.imech != null:
+		return q_ability.imech.get_priority()
+	match q_ability.mechanism:
 		AbilityMechanism.DAMAGE:
 			return 100
 		AbilityMechanism.CHARGE_WITH_FLY:
@@ -56,5 +60,5 @@ static func _get_moth_priority(q_mechanism: AbilityMechanism) -> int:
 			return -2
 		AbilityMechanism.DIE_IN_LIGHT:
 			return -3
-	print("Did not expect to encounter ability mechanism %s for moths" % [AbilityMechanism.keys()[q_mechanism]])
+	print("Did not expect to encounter ability mechanism %s for moths" % [AbilityMechanism.keys()[q_ability.mechanism]])
 	return -100

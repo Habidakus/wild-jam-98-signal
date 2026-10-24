@@ -125,5 +125,6 @@ func get_priority() -> int:
 	return 50
 
 
-func invoke() -> void:
-	assert(false, "not implemeneted")
+func try_invoke() -> bool:
+	assert(false, "Not supported for moths")
+	return false

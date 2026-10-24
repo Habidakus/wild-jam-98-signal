@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Walk" format=3 uid="uid://rca6h3580mx8"]
+
+[ext_resource type="Script" uid="uid://qekrswd5dpvn" path="res://scripts/resources/mechanisms/mech_move.gd" id="1_0pa0q"]
+
+[resource]
+script = ExtResource("1_0pa0q")
+_is_flying = true
+metadata/_custom_type_script = "uid://qekrswd5dpvn"

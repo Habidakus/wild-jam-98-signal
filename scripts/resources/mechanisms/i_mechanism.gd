@@ -12,4 +12,4 @@
 # Foe considerations
 @abstract func does_support_artificial_opponent() -> bool
 @abstract func get_priority() -> int
-@abstract func invoke() -> void
+@abstract func try_invoke() -> bool
