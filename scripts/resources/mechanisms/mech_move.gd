@@ -23,8 +23,8 @@ func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void:
 	_ability = ability
 
 
-func is_enabled(play: Play, ug: UnitGraphic) -> bool:
-	return _generate_walk_paths(play, ug, 1).keys().size() > 1
+func is_enabled() -> bool:
+	return _generate_walk_paths(_play, _ug, 1).keys().size() > 1
 
 
 func does_support_human() -> bool:

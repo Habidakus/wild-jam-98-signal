@@ -12,7 +12,7 @@ func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void:
 	_ability = ability
 
 
-func is_enabled(play: Play, ug: UnitGraphic) -> bool:
+func is_enabled() -> bool:
 	return true
 
 

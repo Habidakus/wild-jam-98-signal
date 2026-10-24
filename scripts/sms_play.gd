@@ -368,7 +368,7 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 	var button: Button = Button.new()
 	button.text = ability.ability_name
 	if ability.imech != null:
-		if not ability.imech.is_enabled(self, _get_current_unit_graphic()):
+		if not ability.imech.is_enabled():
 			button.disabled = true
 	var tooltip: String = ability.ability_description
 	if not tooltip.is_empty():
@@ -815,7 +815,7 @@ func _try_do_moth_charge(ability: Ability, moth_map_loc: Vector2i, all_frogs: Ar
 	return false
 
 
-func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, facing: Vector2i) -> void:
+func _process_awaiting_command_configuration(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:
 	%PlayerControlls.show()
 	var mouse_pressed: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if _await_mouse_release:

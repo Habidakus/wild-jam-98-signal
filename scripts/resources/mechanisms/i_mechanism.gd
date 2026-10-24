@@ -1,7 +1,7 @@
 @abstract class_name IMechanism extends Resource
 
 @abstract func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void
-@abstract func is_enabled(play: Play, ug: UnitGraphic) -> bool
+@abstract func is_enabled() -> bool
 
 # Human considerations
 @abstract func does_support_human() -> bool
