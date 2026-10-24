@@ -3,6 +3,7 @@
 [ext_resource type="AudioStream" uid="uid://c7m7077fm2v1x" path="res://sounds/impact_01.wav" id="1_ikcxk"]
 [ext_resource type="AudioStream" uid="uid://djr5iyopkd3rx" path="res://sounds/impact_02.wav" id="2_feofu"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="2_ikcxk"]
+[ext_resource type="Resource" uid="uid://cp3n6ocj3gfl2" path="res://data/mechanisms/frog_charge.tres" id="3_feofu"]
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_feofu"]
 playback_mode = 1
@@ -17,4 +18,5 @@ ability_description = "Impale with your unicorn horn"
 activation_sound = SubResource("AudioStreamRandomizer_feofu")
 ability_range = 4
 mechanism = 10
+imech = ExtResource("3_feofu")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

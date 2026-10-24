@@ -31,7 +31,6 @@ var _await_mouse_release: bool = false
 var _camera_tween: Tween
 var _mothman_resource = preload("res://data/units/mothman.tres")
 var _target_scene: PackedScene = preload("res://scenes/target.tscn")
-var target_potential_scene: PackedScene = preload("res://scenes/potential_target.tscn")
 var _terrain_children: Array[Node] = []
 var _ap_textures: Dictionary[Vector2i, Resource] = {
 	Vector2i(1, 0): preload("res://art/temp/AP/AP10.png"),
@@ -381,8 +380,19 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 	%PlayerControlls.move_child(button, max_order + 1)
 
 
+func get_charge_reticle() -> Control:
+	if _target_instance == null:
+		_target_instance = _target_scene.instantiate()
+		%AbilityLayer.add_child(_target_instance)
+		_target_instance.hide()
+	return _target_instance
+
+
 func has_wall(map_loc: Vector2i) -> bool:
-	return _walls[map_loc.x * _max_y + map_loc.y]
+	var coord: int = map_to_coord(map_loc)
+	if not _walls.has(coord):
+		return true
+	return _walls[coord]
 
 
 func map_to_coord(map_loc: Vector2i) -> int:
@@ -417,7 +427,10 @@ func get_all_units() -> Array[UnitGraphic]:
 
 
 func reduce_action_points(cost: int) -> void:
-	_ap_remaining = max(0, _ap_remaining - cost)
+	if cost < 0:
+		_ap_remaining = 0
+	else:
+		_ap_remaining = max(0, _ap_remaining - cost)
 
 
 func add_animation_command(command: Callable) -> void:
@@ -823,84 +836,8 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 		assert(_selected_ability.imech.does_support_human())
 		_selected_ability.imech.update(mouse_pressed, mouse_local_pos)
 	else:
-		match _selected_ability.mechanism:
-			Ability.AbilityMechanism.CHARGE:
-				_process_awaiting_charge_command(ug, facing, mouse_pressed, mouse_local_pos)
-			_:
-				assert(false, "should have been handled by IMechanism")
+		assert(false, "should have been handled by IMechanism")
 	_update_fog_of_war()
-	
-
-func _process_awaiting_charge_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
-	%AbilityLayer.clear()
-	if _target_instance == null:
-		_target_instance = _target_scene.instantiate()
-		%AbilityLayer.add_child(_target_instance)
-	var closest_target_dist_to_mouse: float = INF
-	var closest_foe_to_mouse: UnitGraphic
-	var path_to_foe: Array[Vector2i]
-	var ug_map_loc: Vector2i = %AbilityLayer.local_to_map(ug.position)
-	for foe_entry: Array in _unit_list:
-		var foe_ug: UnitGraphic = foe_entry[0]
-		if foe_ug.is_dead() or foe_ug._unit_stats.unit_side == ug._unit_stats.unit_side:
-			continue
-		var foe_map_loc: Vector2i = %AbilityLayer.local_to_map(foe_ug.position)
-		if abs(foe_map_loc.x - ug_map_loc.x) + abs(foe_map_loc.y - ug_map_loc.y) > _selected_ability.ability_range:
-			continue
-		var path: Array[Vector2i] = _try_get_path(ug_map_loc, foe_map_loc, _selected_ability.ability_range, PathLogic.DIRECT_RUN, [foe_ug], false)
-		if path.is_empty():
-			continue
-		var vector_to_mouse: Vector2 = mouse_local_pos - foe_ug.position
-		var dist_squared_from_mouse: float = vector_to_mouse.length_squared()
-		if dist_squared_from_mouse < closest_target_dist_to_mouse:
-			closest_foe_to_mouse = foe_ug
-			closest_target_dist_to_mouse = dist_squared_from_mouse
-			path_to_foe = path
-	_target_instance.show()
-	if closest_foe_to_mouse == null:
-		_target_instance.position = %AbilityLayer.map_to_local(ug_map_loc + facing * _selected_ability.ability_range)
-		_target_instance.show_label()
-		if not mouse_pressed:
-			return
-		for x in range(ug_map_loc.x - _selected_ability.ability_range, ug_map_loc.x + _selected_ability.ability_range + 1):
-			for y in range(ug_map_loc.y - _selected_ability.ability_range, ug_map_loc.y + _selected_ability.ability_range + 1):
-				if abs(x - ug_map_loc.x) + abs(y - ug_map_loc.y) > _selected_ability.ability_range:
-					continue
-				var ping_coord: int = x * _max_y + y
-				if not _walls.has(ping_coord) or _walls[ping_coord]:
-					continue
-				var ping_map_loc: Vector2i = Vector2i(x, y)
-				if (%TerrainLayer as TileMapLayer).get_cell_source_id(ping_map_loc) < 0:
-					continue
-				var o: Node = _get_child_at(ping_map_loc)
-				if o != null:
-					if (o is MapObjectGraphic):
-						if (o as MapObjectGraphic).blocks_walk():
-							continue
-					elif (o is UnitGraphic):
-						continue
-				var path: Array[Vector2i] = _try_get_path(ug_map_loc, ping_map_loc, _selected_ability.ability_range, PathLogic.DIRECT_RUN, [], false)
-				if path.is_empty():
-					continue
-				var potential_target: Sprite2D = target_potential_scene.instantiate()
-				potential_target.position = %AbilityLayer.map_to_local(ping_map_loc)
-				%AbilityLayer.add_child(potential_target)
-		return
-	_target_instance.position = closest_foe_to_mouse.position
-	_target_instance.hide_label()
-	if path_to_foe[0] != ug_map_loc:
-		path_to_foe.insert(0, ug_map_loc)
-	if path_to_foe.size() > 1:
-		var final_facing: Vector2i = path_to_foe[path_to_foe.size() - 1] - path_to_foe[path_to_foe.size() - 2]
-		_target_instance.set_facing(final_facing)
-	if not mouse_pressed:
-		return
-	_animation_stack.add_command(Callable(_move_camera_animation_command).bind(closest_foe_to_mouse.position, 0.1))
-	_animation_stack.add_command(Callable(_frog_charge_animation_command).bind(closest_foe_to_mouse, path_to_foe))
-	_kill(closest_foe_to_mouse)
-	#_ap_remaining -= _selected_ability.ap_cost
-	_ap_remaining = 0
-	_play_state = PlayState.ANIMATING_COMMAND
 
 
 func _move_camera_animation_command(ac: AnimationCommand, pos: Vector2, duration: float) -> void:
@@ -931,25 +868,6 @@ func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, path
 	var final_pos: Vector2 = %TerrainLayer.map_to_local(path.back())
 	tween.tween_property(moth_ug, "position", final_pos, 0.0)
 	tween.tween_callback(Callable(moth_ug, "start_idle_animation"))
-	tween.tween_callback(Callable(self, "_update_fog_of_war"))
-	ac.queue_finish(tween, _animation_stack)
-
-
-
-
-func _frog_charge_animation_command(ac: AnimationCommand, target: UnitGraphic, path_frog_to_moth: Array[Vector2i]) -> void:
-	var frog_ug: UnitGraphic = _get_current_unit_graphic()
-	var tween: Tween = create_tween()
-	for i in range(1, path_frog_to_moth.size()):
-		var leaving_spot: Vector2i = path_frog_to_moth[i - 1]
-		var arriving_spot: Vector2i = path_frog_to_moth[i]
-		var arriving_pos: Vector2 = %TerrainLayer.map_to_local(arriving_spot)
-		var facing = arriving_spot - leaving_spot
-		tween.tween_callback(Callable(self, "_update_current_unit_facing").bind(facing))
-		tween.tween_callback(Callable(self, "_update_fog_of_war"))
-		tween.tween_property(frog_ug, "position", arriving_pos, CHARGE_TIME / (path_frog_to_moth.size() - 1.0))
-	tween.tween_property(frog_ug, "position", target.position, 0.0)
-	tween.tween_callback(Callable(frog_ug, "start_idle_animation"))
 	tween.tween_callback(Callable(self, "_update_fog_of_war"))
 	ac.queue_finish(tween, _animation_stack)
 

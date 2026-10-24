@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="Charge" format=3 uid="uid://cp3n6ocj3gfl2"]
+
+[ext_resource type="Script" uid="uid://dlki4fbf3eph7" path="res://scripts/resources/mechanisms/charge.gd" id="1_giunm"]
+
+[resource]
+script = ExtResource("1_giunm")
+metadata/_custom_type_script = "uid://dlki4fbf3eph7"
