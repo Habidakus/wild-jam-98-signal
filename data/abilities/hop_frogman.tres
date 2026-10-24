@@ -2,6 +2,7 @@
 
 [ext_resource type="AudioStream" uid="uid://c7vwvpccm6fc3" path="res://sounds/Movement and Actions Jump 007.wav" id="1_5f7f2"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_j4sp0"]
+[ext_resource type="Resource" uid="uid://dsm4y8pqbid8w" path="res://data/mechanisms/frog_hop.tres" id="2_kjfqf"]
 
 [resource]
 script = ExtResource("1_j4sp0")
@@ -10,4 +11,5 @@ activation_sound = ExtResource("1_5f7f2")
 target = 1
 ability_range = 3
 mechanism = 4
+imech = ExtResource("2_kjfqf")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

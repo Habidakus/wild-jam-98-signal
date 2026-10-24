@@ -5,7 +5,7 @@ enum AbilityMechanism {
 	UNDEFINED,
 	DAMAGE,			# 0
 	PULL,			# 1
-	WALK,			# 3
+	WALK,			# 3 - converted
 	HOP,			# 1
 	FLY,			# 1
 	ILLUMINATE,		# 2

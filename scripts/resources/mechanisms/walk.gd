@@ -12,13 +12,21 @@ const WALK_ATLAS_LEFT: Vector2i = Vector2i(5, 0)
 
 
 var _squish_sound: AudioStream = preload("res://sounds/swampfoot.tres")
+var _play: Play
+var _ug: UnitGraphic
+var _ability: Ability
+
+
+func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void:
+	_play = play
+	_ug = ug
+	_ability = ability
 
 
 func is_enabled(play: Play, ug: UnitGraphic) -> bool:
 	return _generate_walk_paths(play, ug, 1).keys().size() > 1
 
 
-# Human considerations
 func does_support_human() -> bool:
 	return true
 
@@ -27,9 +35,6 @@ func _generate_walk_paths(play: Play, ug: UnitGraphic, max_dist: int) -> Diction
 	var terrain_layer: TileMapLayer = play.get_terrain_layer()
 	var ug_map_loc: Vector2i = terrain_layer.local_to_map(ug.position)
 	var walk_path: Dictionary[Vector2i, Array] = {}
-	#var closest_squared_dist_to_mouse: float = INF
-	#var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
-	#var closest_map_loc_delta_to_mouse: Vector2
 	walk_path[ug_map_loc] = [0, []]
 	for distance: int in range(0, max_dist):
 		for map_loc: Vector2i in walk_path.keys():
@@ -63,19 +68,12 @@ func _generate_walk_paths(play: Play, ug: UnitGraphic, max_dist: int) -> Diction
 	return walk_path
 
 
-var _play: Play
-var _ug: UnitGraphic
-var _ability: Ability
-func on_select(play: Play, ug: UnitGraphic, ability: Ability) -> void:
-	_play = play
-	_ug = ug
-	_ability = ability
+func on_select() -> void:
+	pass
 
 
 func on_unselect() -> void:
-	_play = null
-	_ug = null
-	_ability = null
+	pass
 
 
 func update(mouse_pressed: bool, mouse_local_pos: Vector2) -> void:

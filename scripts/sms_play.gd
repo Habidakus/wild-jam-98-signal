@@ -46,12 +46,7 @@ var _ap_textures: Dictionary[Vector2i, Resource] = {
 const STANDARD_ZOOM: Vector2 = Vector2.ONE * 1.25
 const CROAK_ZOOM: Vector2 = Vector2.ONE * 0.7
 const DEATH_TIME: float = 0.25
-const TURN_TIME: float = 0.5
-const HOP_TIME: float = 0.5
 const CHARGE_TIME: float = 0.33
-const HOP_SOURCE_ID: int = 0
-const HOP_ATLAS_SELECTED: Vector2i = Vector2i(1, 0)
-const HOP_ATLAS_POTENTIAL: Vector2i = Vector2i(0, 0)
 
 
 #const _footstep_time: float = 0.66
@@ -289,6 +284,10 @@ func _get_current_unit_graphic() -> UnitGraphic:
 	return _unit_list[0][0]
 
 
+func get_current_unit_facing() -> Vector2i:
+	return _unit_list[0][1]
+
+
 func _update_current_unit_facing(dir: Vector2) -> void:
 	var max_dot_value: float = -5.0
 	for d: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
@@ -441,7 +440,7 @@ func _on_ability_selected(ability: Ability) -> void:
 	assert(_selected_ability)
 	if _selected_ability.imech != null:
 		assert(_selected_ability.imech.does_support_human())
-		_selected_ability.imech.on_select(self, _get_current_unit_graphic(),  _selected_ability)
+		_selected_ability.imech.on_select()
 
 
 func _on_pass() -> void:
@@ -486,10 +485,6 @@ func _apply_death(target: UnitGraphic) -> void:
 			_win()
 		elif frog_count == 0:
 			_lose()
-
-
-#func _frog_kill(target: UnitGraphic) -> void:
-	#_apply_death(target)
 
 
 var _animation_stack: AnimationStack = AnimationStack.new()
@@ -566,8 +561,10 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	
 	var abilities: Array[Ability] = []
 	for ability: Ability in ug.get_abilities():
+		if ability.imech != null:
+			ability.imech.setup(self, _get_current_unit_graphic(),  ability)
 		if not ability.always_on:
-			abilities. append(ability)
+			abilities.append(ability)
 	if ug._unit_stats.unit_side == Unit.UnitSide.FROG:
 		_on_center()
 		%PlayerControlls.show()
@@ -827,16 +824,10 @@ func _process_awaiting_command_configuration(_delta: float, ug: UnitGraphic, fac
 		_selected_ability.imech.update(mouse_pressed, mouse_local_pos)
 	else:
 		match _selected_ability.mechanism:
-			Ability.AbilityMechanism.HOP:
-				_process_awaiting_hop_command(ug, facing, mouse_pressed, mouse_local_pos)
 			Ability.AbilityMechanism.CHARGE:
 				_process_awaiting_charge_command(ug, facing, mouse_pressed, mouse_local_pos)
-			Ability.AbilityMechanism.WALK:
+			_:
 				assert(false, "should have been handled by IMechanism")
-				#_process_awaiting_ribbit_command(ug)
-			Ability.AbilityMechanism.RIBBIT_RADAR:
-				assert(false, "should have been handled by IMechanism")
-				#_process_awaiting_ribbit_command(ug)
 	_update_fog_of_war()
 	
 
@@ -944,16 +935,6 @@ func _moth_move_animation_command(ac: AnimationCommand, sound: AudioStream, path
 	ac.queue_finish(tween, _animation_stack)
 
 
-func _frog_hop_animation_command(ac: AnimationCommand, destination: Vector2) -> void:
-	var frog_ug: UnitGraphic = _get_current_unit_graphic()
-	var tween: Tween = create_tween()
-	tween.tween_callback(Callable(%AbilityLayer, "clear"))
-	tween.tween_property(frog_ug, "position", destination, HOP_TIME)
-	tween.parallel()
-	tween.tween_method(Callable(frog_ug, "set_hop_animation_frame"), 0.0, 1.0, HOP_TIME)
-	tween.tween_callback(Callable(frog_ug, "start_idle_animation"))
-	tween.tween_callback(_update_fog_of_war)
-	_move_camera_animation_command(ac, destination, 0.1) # will clean up AnimationCommand for us
 
 
 func _frog_charge_animation_command(ac: AnimationCommand, target: UnitGraphic, path_frog_to_moth: Array[Vector2i]) -> void:
@@ -985,64 +966,6 @@ func _get_terrain_type(map_loc: Vector2i) -> TerrainType:
 	if tile_data.terrain == 0:
 		return TerrainType.SWAMP
 	return TerrainType.UNKNOWN
-
-
-func _process_awaiting_hop_command(ug: UnitGraphic, facing: Vector2i, mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
-	var ug_map_loc: Vector2i = %TerrainLayer.local_to_map(ug.position)
-	var command_potentials: Array[Vector2i]
-	var closest_squared_dist_to_mouse: float = INF
-	var closest_map_loc_to_mouse: Vector2i = Vector2i.MIN
-	for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
-		for i in range(1, _selected_ability.ability_range):
-			var hop_dest: Vector2i = d * i + ug_map_loc
-			if %TerrainLayer.get_cell_source_id(hop_dest) == -1:
-				break
-			var hop_coord: int = hop_dest.x * _max_y + hop_dest.y
-			if _walls[hop_coord]:
-				break
-			var child_at: Node = _get_child_at(hop_dest)
-			if child_at != null:
-				if child_at is MapObjectGraphic:
-					if (child_at as MapObjectGraphic).blocks_hop():
-						break
-			else:
-				var vector_from_mouse: Vector2 = %TerrainLayer.map_to_local(hop_dest) - mouse_local_pos
-				var dist_squared_from_mouse: float = vector_from_mouse.length_squared()
-				if dist_squared_from_mouse < closest_squared_dist_to_mouse:
-					closest_map_loc_to_mouse = hop_dest
-					closest_squared_dist_to_mouse = dist_squared_from_mouse
-				command_potentials.append(hop_dest)
-	%AbilityLayer.clear()
-	if closest_map_loc_to_mouse != Vector2i.MIN:
-		%AbilityLayer.set_cell(closest_map_loc_to_mouse, HOP_SOURCE_ID, HOP_ATLAS_SELECTED)
-		for v: Vector2i in command_potentials:
-			if v != closest_map_loc_to_mouse:
-				%AbilityLayer.set_cell(v, HOP_SOURCE_ID, HOP_ATLAS_POTENTIAL)
-		if mouse_pressed:
-			ug.start_hop_animation(false)
-			_ap_remaining -= _selected_ability.ap_cost
-			ug.play_sound(_selected_ability.activation_sound)
-			var delta: Vector2i = (closest_map_loc_to_mouse - ug_map_loc)
-			delta = delta / delta.length()
-			if delta != facing:
-				if delta + facing == Vector2i.ZERO:
-					var mid: Vector2i = Vector2i(1, 0) if delta.x == 0 else Vector2i(0, 1)
-					if randi() % 2 == 0:
-						mid = mid * Vector2i(-1, -1)
-					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(mid))
-					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(delta))
-				else:
-					_animation_stack.add_command(Callable(_turn_frog_animation_command).bind(delta))
-			_animation_stack.add_command(Callable(_frog_hop_animation_command).bind(%AbilityLayer.map_to_local(closest_map_loc_to_mouse)))
-			_play_state = PlayState.ANIMATING_COMMAND
-
-
-func _turn_frog_animation_command(ac: AnimationCommand, dir: Vector2) -> void:
-	var tween: Tween = create_tween()
-	tween.tween_interval(TURN_TIME)
-	tween.tween_callback(Callable(_update_current_unit_facing).bind(dir))
-	tween.tween_callback(Callable(_update_fog_of_war))
-	ac.queue_finish(tween, _animation_stack)
 
 
 func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facing: Vector2i) -> void:

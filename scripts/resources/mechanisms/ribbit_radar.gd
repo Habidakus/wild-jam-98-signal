@@ -2,7 +2,18 @@ class_name RibbitRadar extends IMechanism
 
 
 const SONAR_SPEED: float = 320.0
+
+
 var ping_scene: PackedScene = preload("res://scenes/ping.tscn")
+var _play: Play
+var _ug: UnitGraphic
+var _ability: Ability
+
+
+func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void:
+	_play = play
+	_ug = ug
+	_ability = ability
 
 
 func is_enabled(_play: Play, _ug: UnitGraphic) -> bool:
@@ -17,12 +28,12 @@ func update(_mouse_pressed: bool, _mouse_local_pos: Vector2) -> void:
 	assert(false, "Should not be invoked")
 
 
-func on_select(play: Play, ug: UnitGraphic, ability: Ability) -> void:
-	var ability_layer: TileMapLayer = play.get_ability_layer()
+func on_select() -> void:
+	var ability_layer: TileMapLayer = _play.get_ability_layer()
 	ability_layer.clear()
-	play.reduce_action_points(ability.ap_cost)
-	play.add_animation_command(Callable(_ribbit_animation_command).bind(play, ug, ability))
-	play.await_command() # _play_state = PlayState.ANIMATING_COMMAND
+	_play.reduce_action_points(_ability.ap_cost)
+	_play.add_animation_command(Callable(_ribbit_animation_command).bind(_play, _ug, _ability))
+	_play.await_command() # _play_state = PlayState.ANIMATING_COMMAND
 
 
 func _ribbit_animation_command(ac: AnimationCommand, play: Play, source: UnitGraphic, ability: Ability) -> void:
