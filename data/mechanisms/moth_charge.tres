@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Charge" format=3 uid="uid://d2lhs6yfs34ev"]
+
+[ext_resource type="Script" uid="uid://dlki4fbf3eph7" path="res://scripts/resources/mechanisms/mech_charge.gd" id="1_0pmra"]
+
+[resource]
+script = ExtResource("1_0pmra")
+_is_flying = true
+metadata/_custom_type_script = "uid://dlki4fbf3eph7"

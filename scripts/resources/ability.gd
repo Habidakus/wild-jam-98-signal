@@ -7,13 +7,13 @@ enum AbilityMechanism {
 	PULL,			# 1
 	WALK,			# 3 - converted
 	HOP,			# 1
-	FLY,			# 1
+	FLY,			# 1 - converted
 	ILLUMINATE,		# 2
 	DIE_IN_LIGHT,	# 1
 	STUN_IN_LIGHT,	# 1
 	RIBBIT_RADAR,	# 1 - converted
-	CHARGE,			# 2
-	CHARGE_WITH_FLY,# 1
+	CHARGE,			# 2 - converted
+	CHARGE_WITH_FLY,# 1 - converted
 }
 
 @export var ability_name: String

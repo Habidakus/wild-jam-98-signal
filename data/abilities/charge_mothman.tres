@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_okrkn"]
 [ext_resource type="AudioStream" uid="uid://dfsvhs2gwpufp" path="res://sounds/cry_01.wav" id="1_qksjq"]
+[ext_resource type="Resource" uid="uid://d2lhs6yfs34ev" path="res://data/mechanisms/moth_charge.tres" id="2_rs3va"]
 
 [resource]
 script = ExtResource("1_okrkn")
@@ -10,4 +11,5 @@ ability_description = "Kill a frog within charge range"
 activation_sound = ExtResource("1_qksjq")
 ability_range = 5
 mechanism = 11
+imech = ExtResource("2_rs3va")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

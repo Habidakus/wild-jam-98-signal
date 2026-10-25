@@ -25,10 +25,7 @@ func setup(play: Play, ug: UnitGraphic, ability: Ability) -> void:
 	_play = play
 	_ug = ug
 	_ability = ability
-	for a: Ability in _ug.get_abilities():
-		if a.mechanism == Ability.AbilityMechanism.DIE_IN_LIGHT or a.mechanism == Ability.AbilityMechanism.STUN_IN_LIGHT:
-			_can_enter_light = false
-			break
+	_can_enter_light = ug.can_enter_light()
 
 
 func is_enabled() -> bool:

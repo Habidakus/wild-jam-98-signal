@@ -57,6 +57,13 @@ func is_king() -> bool:
 	return _unit_stats.is_king
 
 
+func can_enter_light() -> bool:
+	for a: Ability in get_abilities():
+		if a.mechanism == Ability.AbilityMechanism.DIE_IN_LIGHT or a.mechanism == Ability.AbilityMechanism.STUN_IN_LIGHT:
+			return false
+	return true
+
+
 func stop_sound() -> void:
 	%AudioStreamPlayer2D.stop()
 
