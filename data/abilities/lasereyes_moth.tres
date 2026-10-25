@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://d0lsejy2kgl3a"]
+
+[ext_resource type="AudioStream" uid="uid://bgb0onocmt03w" path="res://sounds/dazed_02.wav" id="1_i54ph"]
+[ext_resource type="Resource" uid="uid://dgcilisc7jgvf" path="res://data/mechanisms/moth_lasereyes.tres" id="2_nrs7h"]
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="4_lt453"]
+
+[resource]
+script = ExtResource("4_lt453")
+ability_name = "Lasereyes"
+ap_cost = 10
+ability_description = "Smite your enemies from range"
+activation_sound = ExtResource("1_i54ph")
+ability_range = 10
+mechanism = 1
+imech = ExtResource("2_nrs7h")
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"

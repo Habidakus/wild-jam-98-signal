@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://bp2ff4vhu62uy"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_8h8yr"]
+[ext_resource type="AudioStream" uid="uid://c7m7077fm2v1x" path="res://sounds/impact_01.wav" id="1_ieivd"]
+[ext_resource type="AudioStream" uid="uid://djr5iyopkd3rx" path="res://sounds/impact_02.wav" id="2_twpda"]
+[ext_resource type="Resource" uid="uid://c4prm33oaruf2" path="res://data/mechanisms/frog_hindkick.tres" id="3_p6n1v"]
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_2d0h7"]
+streams_count = 2
+stream_0/stream = ExtResource("1_ieivd")
+stream_1/stream = ExtResource("2_twpda")
+
+[resource]
+script = ExtResource("1_8h8yr")
+ability_name = "Hindkick"
+ap_cost = 10
+ability_description = "Turn around and kill what's behind you"
+activation_sound = SubResource("AudioStreamRandomizer_2d0h7")
+mechanism = 1
+imech = ExtResource("3_p6n1v")
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"

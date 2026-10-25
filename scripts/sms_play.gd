@@ -338,6 +338,7 @@ func _process_animating_command(_delta: float, ug: UnitGraphic, _facing: Vector2
 		_advance_to_next_unit()
 	else:
 		%APRemaining.texture = _ap_textures[Vector2i(ug._unit_stats.action_points, ug._unit_stats.action_points - _ap_remaining)]
+		_refresh_ability_buttons()
 		_play_state = PlayState.AWAITING_COMMAND_SELECTION
 
 
@@ -346,6 +347,15 @@ func _clear_ability_bar() -> void:
 		if child.has_meta("ability_order"):
 			%PlayerControlls.remove_child(child)
 			child.queue_free()
+
+
+func _refresh_ability_buttons() -> void:
+	for child: Node in %PlayerControlls.get_children():
+		if child.has_meta("ability_mech") and child is Button:
+			var ability_mech: IMechanism = child.get_meta("ability_mech")
+			if ability_mech == null:
+				continue
+			(child as Button).disabled = not ability_mech.is_enabled()
 
 
 func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
@@ -374,6 +384,8 @@ func _add_ability_to_bar(ability: Ability, ability_index: int) -> void:
 		button.tooltip_text = tooltip
 	button.set_meta("ability_order", max_order + 1)
 	button.set_meta("ability_index", ability_index)
+	if ability.imech != null:
+		button.set_meta("ability_mech", ability.imech)
 	button.button_up.connect(_on_ability_selected.bind(ability))
 	%PlayerControlls.add_child(button)
 	%PlayerControlls.move_child(button, max_order + 1)
@@ -673,7 +685,7 @@ func _try_get_path_direct_fire(start: Vector2i, end: Vector2i, path_range: int, 
 		if map_loc == start:
 			continue
 		if map_loc == end:
-			if ret_val.size() <= path_range:
+			if ret_val.size() < path_range:
 				ret_val.append(end)
 				return ret_val
 			else:
@@ -728,24 +740,14 @@ func _calculate_bresenham_path(start: Vector2i, end: Vector2i) -> Array[Vector2i
 func _try_do_moth_ability(ability: Ability) -> bool:
 	_selected_ability = ability
 	var moth: UnitGraphic = _get_current_unit_graphic()
-	var moth_map_loc: Vector2i = %TerrainLayer.local_to_map(moth.position)
-	var all_frogs: Array[UnitGraphic] = _get_all_units_of_a_side(Unit.UnitSide.FROG)
 	if ability.imech != null:
 		ability.imech.setup(self, moth, ability)
 		if ability.imech.does_support_artificial_opponent():
 			if ability.imech.is_enabled():
 				return ability.imech.try_invoke()
-	match ability.mechanism:
-		Ability.AbilityMechanism.DAMAGE:
-			for frog: UnitGraphic in all_frogs:
-				var frog_map_loc: Vector2i = %TerrainLayer.local_to_map(frog.position)
-				if not _try_get_path(moth_map_loc, frog_map_loc, ability.ability_range, PathLogic.DIRECT_FIRE, [frog], false).is_empty():
-					_play_state = PlayState.ANIMATING_COMMAND
-					moth.start_attack_animation()
-					_ap_remaining -= _selected_ability.ap_cost
-					_kill(frog)
-					return true
-			return false
+			else:
+				return false
+
 	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [Ability.AbilityMechanism.keys()[ability.mechanism]])
 	return false
 

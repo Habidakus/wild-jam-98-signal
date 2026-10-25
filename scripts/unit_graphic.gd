@@ -3,6 +3,7 @@ class_name UnitGraphic extends Area2D
 
 var _unit_stats: Unit
 var _hop_frame_count: int = 0
+var _attack_frame_count: int = 0
 var _dead: bool = false
 
 
@@ -17,8 +18,11 @@ func set_unit(stats: Unit, show_facing_element: bool) -> void:
 		%AnimatedSprite2D.show()
 		%AnimatedSprite2D.animation = "default"
 		%AnimatedSprite2D.play()
-		if (%AnimatedSprite2D.sprite_frames as SpriteFrames).has_animation(&"hop"):
-			_hop_frame_count = %AnimatedSprite2D.sprite_frames.get_frame_count(&"hop")
+		var sprite_frames: SpriteFrames = %AnimatedSprite2D.sprite_frames as SpriteFrames
+		if sprite_frames.has_animation(&"hop"):
+			_hop_frame_count = sprite_frames.get_frame_count(&"hop")
+		if sprite_frames.has_animation(&"attack"):
+			_attack_frame_count = sprite_frames.get_frame_count(&"attack")
 		%UnitIcon.hide()
 	elif _unit_stats.texture != null:
 		%AnimatedSprite2D.hide()
@@ -70,6 +74,13 @@ func stop_sound() -> void:
 
 func start_idle_animation() -> void:
 	%AnimatedSprite2D.play("default")
+
+
+func start_attack_animation() -> void:
+	if _attack_frame_count == 0:
+		return
+	%AnimatedSprite2D.animation = "attack"
+	%AnimatedSprite2D.play()
 
 
 func start_hop_animation(animate: bool) -> void:

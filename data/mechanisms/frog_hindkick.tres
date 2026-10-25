@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Damage" format=3 uid="uid://c4prm33oaruf2"]
+
+[ext_resource type="Script" uid="uid://c3pwcxvds724f" path="res://scripts/resources/mechanisms/mech_damage.gd" id="1_isygx"]
+
+[resource]
+script = ExtResource("1_isygx")
+face_away_from_target = true
+metadata/_custom_type_script = "uid://c3pwcxvds724f"
