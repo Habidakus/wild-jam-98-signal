@@ -63,7 +63,7 @@ func is_king() -> bool:
 
 func can_enter_light() -> bool:
 	for a: Ability in get_abilities():
-		if a.mechanism == Ability.AbilityMechanism.DIE_IN_LIGHT or a.mechanism == Ability.AbilityMechanism.STUN_IN_LIGHT:
+		if a.has_tag(Ability.AbilityTag.MALUS_IN_LIGHT):
 			return false
 	return true
 
@@ -110,10 +110,3 @@ func is_dead() -> bool:
 
 func get_abilities() -> Array[Ability]:
 	return _unit_stats.abilities
-
-
-func get_ability(mechanism: Ability.AbilityMechanism) -> Ability:
-	for ability: Ability in _unit_stats.abilities:
-		if ability.mechanism == mechanism:
-			return ability
-	return null

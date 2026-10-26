@@ -286,6 +286,14 @@ func get_current_unit_facing() -> Vector2i:
 	return _unit_list[0][1]
 
 
+func get_unit_facing(ug: UnitGraphic) -> Vector2i:
+	for entry: Array in _unit_list:
+		if entry[0] == ug:
+			return entry[1]
+	print("Did not find unit in call get_unit_facing(%s)" % [ug._unit_stats.unit_name])
+	return Vector2i.ZERO
+
+
 func _update_current_unit_facing(dir: Vector2) -> void:
 	var max_dot_value: float = -5.0
 	for d: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
@@ -534,10 +542,6 @@ func _kill_animation_command(ac: AnimationCommand, _killer: UnitGraphic, target:
 	_play_state = PlayState.ANIMATING_COMMAND
 
 
-func _die() -> void:
-	_kill(_get_current_unit_graphic())
-
-
 func _on_center() -> void:
 	var current_global_pos: Vector2 = %Camera2D.global_position
 	var local_pos: Vector2 = _get_current_unit_graphic().position
@@ -567,27 +571,19 @@ func _process_setup_command(_delta: float, ug: UnitGraphic, _facing: Vector2i) -
 	%UnitImage.texture = ug._unit_stats.texture
 	%UnitName.text = ug._unit_stats.unit_name
 	%APRemaining.texture = _ap_textures[Vector2i(_ap_remaining, 0)]
-	var stun_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.STUN_IN_LIGHT)
-	var die_in_light: Ability = ug.get_ability(Ability.AbilityMechanism.DIE_IN_LIGHT)
-	if stun_in_light != null or die_in_light != null:
-		if _is_map_loc_in_light(%TerrainLayer.local_to_map(ug.position)):
-			if die_in_light != null:
-				_selected_ability = die_in_light
-				_die()
-				return
-			elif stun_in_light != null:
-				_selected_ability = stun_in_light
-				ug.play_sound(stun_in_light.activation_sound)
-				_on_pass()
-				return
-			else:
-				print("huh?")
-	
 	var abilities: Array[Ability] = []
 	for ability: Ability in ug.get_abilities():
 		if ability.imech != null:
 			ability.imech.setup(self, _get_current_unit_graphic(),  ability)
-		if not ability.always_on:
+		if ability.trigger == Ability.AbilityTrigger.ON_TURN_START:
+			if ability.imech != null:
+				_selected_ability = ability
+				if ability.imech.try_invoke():
+					return
+				_selected_ability = null
+			else:
+				print("Always on ability %s does not have a defined IMechanism" % [ability.ability_name])
+		elif ability.trigger == Ability.AbilityTrigger.INVOKED:
 			abilities.append(ability)
 	if ug._unit_stats.unit_side == Unit.UnitSide.FROG:
 		_on_center()
@@ -748,7 +744,7 @@ func _try_do_moth_ability(ability: Ability) -> bool:
 			else:
 				return false
 
-	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [Ability.AbilityMechanism.keys()[ability.mechanism]])
+	print("Artificial opponent doesn't know how to perform %s mechanisms for moths" % [ability.ability_name])
 	return false
 
 
@@ -805,76 +801,41 @@ func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facin
 
 func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
 	%FogOfWarLayer.clear()
-	var light_cones: Dictionary[int, float] = {}
-	for entry: Array in _unit_list:
-		var unit_graphic: UnitGraphic = entry[0] as UnitGraphic
-		var illumination: Ability = unit_graphic.get_ability(Ability.AbilityMechanism.ILLUMINATE)
-		if illumination != null:
-			var unit_map_loc: Vector2i = %TerrainLayer.local_to_map(entry[0].position)
-			var unit_light_range: int = illumination.ability_range
-			var unit_facing: Vector2i = entry[1]
-			_generate_light_cones(unit_map_loc, unit_light_range, unit_facing, light_cones)
-		for fullbright:Vector2i in extra_fullbright:
-			light_cones[fullbright.x * _max_y + fullbright.y] = 0.0
 	for x in range(-1, _max_x + 1):
 		for y in range(-1, _max_y + 1):
 			var coord: int = x * _max_y + y
 			var map_loc: Vector2i = Vector2i(x, y)
-			if light_cones.has(coord):
-				_seen_cells[coord] = true
-				var dist: float = light_cones[coord]
-				if dist <= 0.25:
-					pass
-				elif dist <= 0.5:
-					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(0,0)) # one sixth
-				elif dist <= 0.75:
-					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(1,0)) # one third
-				else:
-					%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(2,0)) # one half
-			elif _seen_cells.has(coord):
+			if _seen_cells.has(coord):
 				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(3,0)) # five sixths
 			else:
 				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(4,0)) # full
+	for entry: Array in _unit_list:
+		var unit_graphic: UnitGraphic = entry[0] as UnitGraphic
+		for ability: Ability in unit_graphic.get_abilities():
+			if ability.trigger == Ability.AbilityTrigger.ON_ILLUMINATION_PHASE:
+				ability.imech.setup(self, unit_graphic, ability)
+				if not ability.imech.try_invoke():
+					print("Why did %s fail to invoke?" % [ability.ability_name])
+	for fullbright: Vector2i in extra_fullbright:
+		%FogOfWarLayer.erase_cell(fullbright)
 
 
-func _is_in_cell_in_forward_arc(origin: Vector2i, facing: Vector2i, dest: Vector2i) -> bool:
-	var vector_from_party_to_map_loc: Vector2i = dest - origin
-	var dot: float = Vector2(vector_from_party_to_map_loc).dot(facing)
-	if dot <= 0:
-		return false
-	var lengths_sq: float = vector_from_party_to_map_loc.length_squared() * facing.length_squared()
-	#const cos_45_degree_sq: float = 0.5
-	#return (dot * dot) >= (cos_45_degree_sq * lengths_sq)
-	const cos_35_degree_sq: float = 0.67
-	return (dot * dot) >= (cos_35_degree_sq * lengths_sq)
-
-
-func _generate_light_cones(map_loc: Vector2i, light_range: int, facing: Vector2i, light_map: Dictionary[int, float]) -> void:
-	var tmp_map: Dictionary[int, int] = {}
-	light_map[map_loc.x * _max_y + map_loc.y] = 0
-	tmp_map[map_loc.x * _max_y + map_loc.y] = 0
-	
-	for current_dist in range(0, light_range):
-		var next_light_float_strength: float = (1.0 + float(current_dist)) / float(light_range)
-		for coord: int in tmp_map.keys():
-			if tmp_map[coord] != current_dist:
-				continue
-			if _walls[coord]:
-				continue
-			var x: int = int(coord / float(_max_y))
-			var y: int = coord % _max_y
-			for fx in range(x-1, x+2):
-				for fy in range(y-1, y+2):
-					var f_coord: int = fx * _max_y + fy
-					if not _is_in_cell_in_forward_arc(map_loc, facing, Vector2i(fx, fy)):
-						continue
-					if tmp_map.has(f_coord):
-						continue
-					tmp_map[fx * _max_y + fy] = current_dist + 1
-					if not light_map.has(f_coord):
-						light_map[fx * _max_y + fy] = next_light_float_strength
-					elif light_map[f_coord] > next_light_float_strength:
-						light_map[fx * _max_y + fy] = next_light_float_strength
+func update_light_level(map_loc: Vector2i, amount_of_darkness: float) -> void:
+	if amount_of_darkness < 1.0:
+		_seen_cells[map_to_coord(map_loc)] = true
+	if amount_of_darkness <= 0.25:
+		%FogOfWarLayer.erase_cell(map_loc)
+		return
+	var darkness_x: int = 2 # one half
+	if amount_of_darkness <= 0.5:
+		darkness_x = 0 # one sixth
+	elif amount_of_darkness <= 0.75:
+		darkness_x = 1 # one third
+	var current_darkness_x: int = get_fog_of_war_layer().get_cell_atlas_coords(map_loc).x
+	if current_darkness_x < darkness_x:
+		# don't increase darkness if someone else is illuminating this more
+		return
+	%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(darkness_x,0))
 
 
 func _place_object(node: Node2D, map_loc: Vector2i) -> void:

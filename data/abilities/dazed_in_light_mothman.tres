@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://bbofwbk036w3r"]
 
 [ext_resource type="AudioStream" uid="uid://bgb0onocmt03w" path="res://sounds/dazed_02.wav" id="1_qwudu"]
+[ext_resource type="Resource" uid="uid://bjcqjxrjk3rlm" path="res://data/mechanisms/moth_stun_in_light.tres" id="2_fq278"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="2_r6oqq"]
 
 [resource]
@@ -10,6 +11,7 @@ ap_cost = 0
 activation_sound = ExtResource("1_qwudu")
 target = 1
 ability_range = 0
-mechanism = 8
-always_on = true
+imech = ExtResource("2_fq278")
+trigger = 1
+tags = Array[int]([0])
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

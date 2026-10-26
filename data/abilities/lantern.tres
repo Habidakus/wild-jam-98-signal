@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://ej4m7axlxbbb"]
 
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_1omqm"]
+[ext_resource type="Resource" uid="uid://dck3mjihdj83k" path="res://data/mechanisms/frog_lantern.tres" id="1_yeywv"]
 
 [resource]
 script = ExtResource("1_1omqm")
 ability_name = "Lanturn Attack"
 ability_range = 4
-mechanism = 6
-always_on = true
-angle = 35.0
+imech = ExtResource("1_yeywv")
+trigger = 2
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

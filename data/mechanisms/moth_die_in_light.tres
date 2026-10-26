@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="Suicide" format=3 uid="uid://pq3dqlr08s7w"]
+
+[ext_resource type="Script" uid="uid://bkptx2iifbrs7" path="res://scripts/resources/mechanisms/mech_suicide.gd" id="1_r37cd"]
+
+[resource]
+script = ExtResource("1_r37cd")
+metadata/_custom_type_script = "uid://bkptx2iifbrs7"

@@ -9,7 +9,7 @@ Features:
 Code Rot:
 - (done) replace the haphazard _animation_tween handling with an actual board animation stack
 - (done) remove the "center" button, it's useless now
-- (started) ability mechanisms should be classes unto themselves, not entries in an enum
+- (done) ability mechanisms should be classes unto themselves, not entries in an enum
 
 Bug Fixes:
 - the charge "potential spot to go to" shouldn't be on mouse-click, but always.

@@ -16,6 +16,5 @@ ability_name = "Hindkick"
 ap_cost = 10
 ability_description = "Turn around and kill what's behind you"
 activation_sound = SubResource("AudioStreamRandomizer_2d0h7")
-mechanism = 1
 imech = ExtResource("3_p6n1v")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

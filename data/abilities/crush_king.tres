@@ -15,6 +15,5 @@ script = ExtResource("3_348ot")
 ability_name = "Crush"
 ability_description = "Impale with your unicorn horn"
 activation_sound = SubResource("AudioStreamRandomizer_feofu")
-mechanism = 10
 imech = ExtResource("3_31jwe")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

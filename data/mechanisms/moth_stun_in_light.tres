@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="StunSelf" format=3 uid="uid://bjcqjxrjk3rlm"]
+
+[ext_resource type="Script" uid="uid://vlchvq337hcv" path="res://scripts/resources/mechanisms/mech_stun_self.gd" id="1_8imff"]
+
+[resource]
+script = ExtResource("1_8imff")
+metadata/_custom_type_script = "uid://vlchvq337hcv"

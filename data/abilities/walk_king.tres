@@ -10,6 +10,5 @@ ability_name = "Waddle"
 activation_sound = ExtResource("1_vqqoe")
 target = 1
 ability_range = 2
-mechanism = 3
 imech = ExtResource("2_14y4w")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

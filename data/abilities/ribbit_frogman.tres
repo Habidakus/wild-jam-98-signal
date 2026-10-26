@@ -9,7 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://b5vdmp1ir6dnx" path="res://sounds/croak_006.wav" id="6_m7itn"]
 [ext_resource type="AudioStream" uid="uid://buwedu1yb5tj5" path="res://sounds/croak_007.wav" id="7_ddpv7"]
 [ext_resource type="AudioStream" uid="uid://ow83qd4fiovp" path="res://sounds/croak_008.wav" id="8_s4ju5"]
-[ext_resource type="Resource" uid="uid://b5q40wa7fn8s6" path="res://data/mechanisms/ribbit_radar.tres" id="9_mvs3d"]
+[ext_resource type="Resource" uid="uid://b5q40wa7fn8s6" path="res://data/mechanisms/frog_radar.tres" id="9_mvs3d"]
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_ruf7k"]
 streams_count = 8
@@ -28,6 +28,5 @@ ability_name = "Croak"
 ability_description = "Emit an echo locating chroak"
 activation_sound = SubResource("AudioStreamRandomizer_ruf7k")
 ability_range = 20
-mechanism = 9
 imech = ExtResource("9_mvs3d")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

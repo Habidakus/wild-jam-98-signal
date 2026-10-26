@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="Lantern" format=3 uid="uid://dck3mjihdj83k"]
+
+[ext_resource type="Script" uid="uid://b31ws3qq8ql63" path="res://scripts/resources/mechanisms/mech_lantern.gd" id="1_4bx6w"]
+
+[resource]
+script = ExtResource("1_4bx6w")
+metadata/_custom_type_script = "uid://b31ws3qq8ql63"

@@ -17,6 +17,5 @@ ability_name = "Charge"
 ability_description = "Impale with your unicorn horn"
 activation_sound = SubResource("AudioStreamRandomizer_feofu")
 ability_range = 4
-mechanism = 10
 imech = ExtResource("3_feofu")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"
