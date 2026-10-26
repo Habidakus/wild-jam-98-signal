@@ -304,6 +304,22 @@ func _update_current_unit_facing(dir: Vector2) -> void:
 	_get_current_unit_graphic().set_facing(_unit_list[0][1])
 
 
+func _update_unit_facing(ug: UnitGraphic, dir: Vector2) -> void:
+	var max_dot_value: float = -5.0
+	var best_dir: Vector2i = Vector2i.MIN
+	for d: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT]:
+		var ddot: float = Vector2(d).dot(dir)
+		if ddot > max_dot_value:
+			max_dot_value = ddot
+			best_dir = d
+	for index: int in range(0, _unit_list.size()):
+		if _unit_list[index][0] == ug:
+			_unit_list[index][1] = best_dir
+			ug.set_facing(best_dir)
+			return
+	print("did not find unit in _update_unit_facing(%s, %s)" % [ug._unit_stats.unit_name, dir])
+
+
 func _process(delta: float) -> void:
 	#[unit_graphic, facing, initiative]
 	var current_entry: Array = _unit_list[0]

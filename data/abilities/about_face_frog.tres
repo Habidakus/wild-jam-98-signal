@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://c2iicebeguus1"]
+
+[ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_neafa"]
+[ext_resource type="AudioStream" uid="uid://cjimu2mqbyaso" path="res://sounds/random_croak.tres" id="1_tr5sa"]
+[ext_resource type="Resource" uid="uid://blt1gaa4wba0g" path="res://data/mechanisms/frog_leader_order.tres" id="2_nxd1d"]
+
+[resource]
+script = ExtResource("1_neafa")
+ability_name = "Order Frog"
+ability_description = "Order other frog to face a new direction"
+activation_sound = ExtResource("1_tr5sa")
+target = 2
+ability_range = 0
+imech = ExtResource("2_nxd1d")
+metadata/_custom_type_script = "uid://cikj2phnxdvs6"

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="LeaderOrder" format=3 uid="uid://blt1gaa4wba0g"]
+
+[ext_resource type="Script" uid="uid://btu33kyoswo6t" path="res://scripts/resources/mechanisms/mech_order.gd" id="1_jf26s"]
+
+[resource]
+script = ExtResource("1_jf26s")
+metadata/_custom_type_script = "uid://btu33kyoswo6t"

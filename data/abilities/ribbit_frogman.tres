@@ -1,32 +1,14 @@
 [gd_resource type="Resource" script_class="Ability" format=3 uid="uid://blr1yibdbrnjn"]
 
-[ext_resource type="AudioStream" uid="uid://ceig556jsqcb8" path="res://sounds/croak_001.wav" id="1_dspc1"]
+[ext_resource type="AudioStream" uid="uid://cjimu2mqbyaso" path="res://sounds/random_croak.tres" id="1_5or0s"]
 [ext_resource type="Script" uid="uid://cikj2phnxdvs6" path="res://scripts/resources/ability.gd" id="1_x7i4k"]
-[ext_resource type="AudioStream" uid="uid://cny3un23bbm5n" path="res://sounds/croak_002.wav" id="2_mvs3d"]
-[ext_resource type="AudioStream" uid="uid://bqk4v6snh2hut" path="res://sounds/croak_003.wav" id="3_cap3s"]
-[ext_resource type="AudioStream" uid="uid://c2shn6kkax3jp" path="res://sounds/croak_004.wav" id="4_mfghy"]
-[ext_resource type="AudioStream" uid="uid://cuppjcnfedtfn" path="res://sounds/croak_005.wav" id="5_3iv4f"]
-[ext_resource type="AudioStream" uid="uid://b5vdmp1ir6dnx" path="res://sounds/croak_006.wav" id="6_m7itn"]
-[ext_resource type="AudioStream" uid="uid://buwedu1yb5tj5" path="res://sounds/croak_007.wav" id="7_ddpv7"]
-[ext_resource type="AudioStream" uid="uid://ow83qd4fiovp" path="res://sounds/croak_008.wav" id="8_s4ju5"]
 [ext_resource type="Resource" uid="uid://b5q40wa7fn8s6" path="res://data/mechanisms/frog_radar.tres" id="9_mvs3d"]
-
-[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_ruf7k"]
-streams_count = 8
-stream_0/stream = ExtResource("1_dspc1")
-stream_1/stream = ExtResource("2_mvs3d")
-stream_2/stream = ExtResource("3_cap3s")
-stream_3/stream = ExtResource("4_mfghy")
-stream_4/stream = ExtResource("5_3iv4f")
-stream_5/stream = ExtResource("6_m7itn")
-stream_6/stream = ExtResource("7_ddpv7")
-stream_7/stream = ExtResource("8_s4ju5")
 
 [resource]
 script = ExtResource("1_x7i4k")
 ability_name = "Croak"
 ability_description = "Emit an echo locating chroak"
-activation_sound = SubResource("AudioStreamRandomizer_ruf7k")
+activation_sound = ExtResource("1_5or0s")
 ability_range = 20
 imech = ExtResource("9_mvs3d")
 metadata/_custom_type_script = "uid://cikj2phnxdvs6"

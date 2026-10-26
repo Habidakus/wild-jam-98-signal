@@ -124,16 +124,14 @@ func update(mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
 			ability_layer.set_cell(loc, MOVE_SOURCE_ID, MOVE_ATLAS_SELECTED)
 		var norm: Vector2 = closest_map_loc_delta_to_mouse.normalized()
 		var max_dot: float = -100.0
-		var best_atlas: Vector2i = Vector2i.MIN
 		var final_facing: Vector2i = Vector2i.MIN
-		for d_tupple in [[Vector2i.UP, MOVE_ATLAS_UP], [Vector2i.RIGHT, MOVE_ATLAS_RIGHT], [Vector2i.DOWN, MOVE_ATLAS_DOWN], [Vector2i.LEFT, MOVE_ATLAS_LEFT]]:
-			var dot: float = Vector2(d_tupple[0]).dot(norm)
+		for facing: Vector2i in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+			var dot: float = Vector2(facing).dot(norm)
 			if dot > max_dot:
 				max_dot = dot
-				best_atlas = d_tupple[1]
-				final_facing = d_tupple[0]
-		if best_atlas != Vector2i.MIN:
-			ability_layer.set_cell(closest_map_loc_to_mouse, MOVE_SOURCE_ID, best_atlas)
+				final_facing = facing
+		if final_facing != Vector2i.MIN:
+			apply_movement_dir_cell(ability_layer, closest_map_loc_to_mouse, final_facing)
 		if mouse_pressed:
 			if mouse_path.is_empty():
 				mouse_path.append(closest_map_loc_to_mouse)
@@ -143,6 +141,20 @@ func update(mouse_pressed: bool, mouse_local_pos: Vector2) -> void:
 			var final_position: Vector2 = ability_layer.map_to_local(closest_map_loc_to_mouse)
 			_play.add_animation_command(Callable(_play, "_move_camera_animation_command").bind(final_position, 0.4))
 			_play.await_command()
+
+
+static func apply_movement_dir_cell(ability_layer: TileMapLayer, map_loc: Vector2i, dir: Vector2i) -> void:
+	match dir:
+		Vector2i.UP:
+			ability_layer.set_cell(map_loc, MOVE_SOURCE_ID, MOVE_ATLAS_UP)
+		Vector2i.DOWN:
+			ability_layer.set_cell(map_loc, MOVE_SOURCE_ID, MOVE_ATLAS_DOWN)
+		Vector2i.RIGHT:
+			ability_layer.set_cell(map_loc, MOVE_SOURCE_ID, MOVE_ATLAS_RIGHT)
+		Vector2i.LEFT:
+			ability_layer.set_cell(map_loc, MOVE_SOURCE_ID, MOVE_ATLAS_LEFT)
+		_:
+			print("Bad direction given to apply_movement_dir_cell(%s)" % [dir])
 
 
 func _invoke(path: Array, final_facing: Vector2) -> void:

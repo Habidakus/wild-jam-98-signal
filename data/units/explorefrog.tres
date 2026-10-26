@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://cobklneaf4pkw" path="res://scripts/resources/unit.gd" id="5_7vjo0"]
 [ext_resource type="Resource" uid="uid://blr1yibdbrnjn" path="res://data/abilities/ribbit_frogman.tres" id="5_wpnn3"]
 [ext_resource type="SpriteFrames" uid="uid://dv0p6w0emakd6" path="res://art/wild_frogs/animations/frog_06_explorer/sprite_frames.tres" id="6_k86rc"]
+[ext_resource type="Resource" uid="uid://c2iicebeguus1" path="res://data/abilities/about_face_frog.tres" id="6_ko3vw"]
 [ext_resource type="Texture2D" uid="uid://bd88g8kwrsy2f" path="res://art/wild_frogs/sprites/frog_06_explorer.png" id="7_k86rc"]
 
 [resource]
@@ -18,5 +19,5 @@ unit_description = "Explore Frog will never understand why Valheim uses strawber
 action_points = 2
 unit_side = 1
 hit_points = 10
-abilities = Array[ExtResource("1_k86rc")]([ExtResource("2_wpnn3"), ExtResource("3_ko3vw"), ExtResource("4_ett6y"), ExtResource("5_wpnn3")])
+abilities = Array[ExtResource("1_k86rc")]([ExtResource("2_wpnn3"), ExtResource("3_ko3vw"), ExtResource("4_ett6y"), ExtResource("5_wpnn3"), ExtResource("6_ko3vw")])
 metadata/_custom_type_script = "uid://cobklneaf4pkw"
