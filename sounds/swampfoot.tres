@@ -3,10 +3,14 @@
 [ext_resource type="AudioStream" uid="uid://dkqajry43us00" path="res://sounds/swampfoot_01.wav" id="1_882cj"]
 [ext_resource type="AudioStream" uid="uid://c6ubgeosslgow" path="res://sounds/swampfoot_02.wav" id="2_vcwwt"]
 [ext_resource type="AudioStream" uid="uid://cvv2sqwbvhmmn" path="res://sounds/swampfoot_03.wav" id="3_xl6h3"]
+[ext_resource type="AudioStream" uid="uid://ccfpnpt6nmf2s" path="res://sounds/swampfoot_04.wav" id="4_xl6h3"]
+[ext_resource type="AudioStream" uid="uid://defarog7mkh1y" path="res://sounds/swampfoot_05.wav" id="5_2ctvt"]
 
 [resource]
 playback_mode = 1
-streams_count = 3
+streams_count = 5
 stream_0/stream = ExtResource("1_882cj")
 stream_1/stream = ExtResource("2_vcwwt")
 stream_2/stream = ExtResource("3_xl6h3")
+stream_3/stream = ExtResource("4_xl6h3")
+stream_4/stream = ExtResource("5_2ctvt")
