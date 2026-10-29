@@ -45,8 +45,8 @@ func try_invoke() -> bool:
 	if _ability.trigger == Ability.AbilityTrigger.INVOKED:
 		_play.reduce_action_points(_ability.ap_cost)
 
-	var fog_layer: TileMapLayer = _play.get_fog_of_war_layer()
-	var ug_map_loc: Vector2i = fog_layer.local_to_map(_ug.position)
+	var terrain_layer: TileMapLayer = _play.get_terrain_layer()
+	var ug_map_loc: Vector2i = terrain_layer.local_to_map(_ug.position)
 	var unit_facing: Vector2i = _play.get_unit_facing(_ug)
 	_generate_light_cones(ug_map_loc, unit_facing)
 	return true

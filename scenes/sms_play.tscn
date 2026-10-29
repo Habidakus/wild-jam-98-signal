@@ -36,7 +36,15 @@ tile_set = ExtResource("2_x7n7y")
 
 [node name="FogOfWarLayer" type="TileMapLayer" parent="." unique_id=318256740]
 unique_name_in_owner = true
+visible = false
 tile_set = ExtResource("3_nw82y")
+
+[node name="FogOfWarRect" type="TextureRect" parent="." unique_id=1587390236]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
 
 [node name="AbilityLayer" type="TileMapLayer" parent="." unique_id=1646719952]
 unique_name_in_owner = true

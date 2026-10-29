@@ -20,7 +20,7 @@ var _max_y: int = 40
 var _start_spot: Vector2i = Vector2i.MIN
 var _end_spot: Vector2i = Vector2i.MIN
 var _unit_list: Array[Array] = []
-var _fog_of_war_source_id: int = 0
+#var _fog_of_war_source_id: int = 0
 var _import_terrain: TileMapLayer
 var _heroes: Array[Unit]
 var _victory_state: String
@@ -86,7 +86,7 @@ func enter_state() -> void:
 	_start_spot = Vector2i.MIN
 	_end_spot = Vector2i.MIN
 	_unit_list = []
-	_fog_of_war_source_id = 0
+	#_fog_of_war_source_id = 0
 
 	#var noise: FastNoiseLite = FastNoiseLite.new()
 	#noise.noise_type = FastNoiseLite.TYPE_SIMPLEX # FastNoiseLite.TYPE_PERLIN
@@ -141,11 +141,11 @@ func enter_state() -> void:
 	#var import_terrain: TileMapLayer = import_terrain_ps.instantiate()
 	(%TerrainLayer as TileMapLayer).clear()
 	(%TerrainLayer as TileMapLayer).tile_set = _import_terrain.tile_set
-	(%FogOfWarLayer as TileMapLayer).tile_set.tile_size = _import_terrain.tile_set.tile_size
-	if _import_terrain.tile_set.tile_size.x == 16:
-		_fog_of_war_source_id = 0
-	elif _import_terrain.tile_set.tile_size.x == 32:
-		_fog_of_war_source_id = 1
+	#(%FogOfWarLayer as TileMapLayer).tile_set.tile_size = _import_terrain.tile_set.tile_size
+	#if _import_terrain.tile_set.tile_size.x == 16:
+		#_fog_of_war_source_id = 0
+	#elif _import_terrain.tile_set.tile_size.x == 32:
+		#_fog_of_war_source_id = 1
 	#(%FogOfWarLayer as TileMapLayer).tile_set.get_source(0).texture_region_size = import_terrain.tile_set.tile_size
 	(%AbilityLayer as TileMapLayer).tile_set.tile_size = _import_terrain.tile_set.tile_size
 	_walls.clear()
@@ -220,6 +220,16 @@ func enter_state() -> void:
 	else:
 		for spawn_spot: Vector2i in loot_locs:
 			_add_mothman_near(spawn_spot)
+
+	_fog_of_war_image = Image.create(_max_x, _max_y, false, Image.FORMAT_RGBA8)
+	_fog_of_war_image.fill(_color_full_black)
+	_fog_of_war_texture = ImageTexture.create_from_image(_fog_of_war_image)
+	var tile_size: Vector2i = get_terrain_layer().tile_set.tile_size
+	var top_left_pixel: Vector2 = get_terrain_layer().map_to_local(Vector2i.ZERO) - Vector2(tile_size) / 2.0
+	var total_pixel_size: Vector2 = Vector2(_max_x, _max_y) * Vector2(tile_size)
+	%FogOfWarRect.position = top_left_pixel
+	%FogOfWarRect.size = total_pixel_size
+	%FogOfWarRect.texture = _fog_of_war_texture
 	
 	_update_fog_of_war()
 
@@ -438,8 +448,8 @@ func get_ability_layer() -> TileMapLayer:
 	return %AbilityLayer
 
 
-func get_fog_of_war_layer() -> TileMapLayer:
-	return %FogOfWarLayer
+#func get_fog_of_war_layer() -> TileMapLayer:
+	#return %FogOfWarLayer
 
 
 func get_terrain_layer() -> TileMapLayer:
@@ -643,9 +653,11 @@ func _try_get_path(start: Vector2i, end: Vector2i, path_range: int, path_logic: 
 
 
 func _is_map_loc_in_light(map_loc: Vector2i) -> bool:
-	return %FogOfWarLayer.get_cell_atlas_coords(map_loc).x < 3
+	return _fog_of_war_image.get_pixel(map_loc.x, map_loc.y).a < _color_has_seen.a
+
+
 func _is_map_loc_completely_dark(map_loc: Vector2i) -> bool:
-	return %FogOfWarLayer.get_cell_atlas_coords(map_loc).x == 4
+	return _fog_of_war_image.get_pixel(map_loc.x, map_loc.y).a > _color_has_seen.a
 
 
 func _try_get_path_direct_travel(start: Vector2i, end: Vector2i, search_range: int, ignore_nodes: Array[Node], avoid_light: bool, fly: bool) -> Array[Vector2i]:
@@ -814,17 +826,22 @@ func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facin
 	%PlayerControlls.show()
 	_update_fog_of_war()
 
-
+var _fog_of_war_image: Image
+var _fog_of_war_texture: ImageTexture
+const _color_full_black: Color = Color(0, 0, 0, 1)
+const _color_has_seen: Color = Color(0,0,0,0.8)
+const _color_far: Color = Color(0,0,0,0.6)
+const _color_medium: Color = Color(0,0,0,0.4)
+const _color_close: Color = Color(0,0,0,0.2)
+const _color_full_bright: Color = Color(0, 0, 0, 0)
 func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
-	%FogOfWarLayer.clear()
-	for x in range(-1, _max_x + 1):
-		for y in range(-1, _max_y + 1):
+	for x in range(0, _max_x):
+		for y in range(0, _max_y):
 			var coord: int = x * _max_y + y
-			var map_loc: Vector2i = Vector2i(x, y)
 			if _seen_cells.has(coord):
-				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(3,0)) # five sixths
+				_fog_of_war_image.set_pixel(x, y, _color_has_seen)
 			else:
-				%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(4,0)) # full
+				_fog_of_war_image.set_pixel(x, y, _color_full_black)
 	for entry: Array in _unit_list:
 		var unit_graphic: UnitGraphic = entry[0] as UnitGraphic
 		for ability: Ability in unit_graphic.get_abilities():
@@ -833,25 +850,26 @@ func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
 				if not ability.imech.try_invoke():
 					print("Why did %s fail to invoke?" % [ability.ability_name])
 	for fullbright: Vector2i in extra_fullbright:
-		%FogOfWarLayer.erase_cell(fullbright)
+		_fog_of_war_image.set_pixel(fullbright.x, fullbright.y, _color_full_bright)
+	_fog_of_war_texture.update(_fog_of_war_image)
+	%FogOfWarRect.texture = _fog_of_war_texture
 
 
 func update_light_level(map_loc: Vector2i, amount_of_darkness: float) -> void:
 	if amount_of_darkness < 1.0:
 		_seen_cells[map_to_coord(map_loc)] = true
+	var new_color: Color = _color_far
 	if amount_of_darkness <= 0.25:
-		%FogOfWarLayer.erase_cell(map_loc)
-		return
-	var darkness_x: int = 2 # one half
-	if amount_of_darkness <= 0.5:
-		darkness_x = 0 # one sixth
+		new_color = _color_full_bright
+	elif amount_of_darkness <= 0.5:
+		new_color = _color_close
 	elif amount_of_darkness <= 0.75:
-		darkness_x = 1 # one third
-	var current_darkness_x: int = get_fog_of_war_layer().get_cell_atlas_coords(map_loc).x
-	if current_darkness_x < darkness_x:
+		new_color = _color_medium
+	var current_alpha: float = _fog_of_war_image.get_pixel(map_loc.x, map_loc.y).a
+	if current_alpha < new_color.a:
 		# don't increase darkness if someone else is illuminating this more
 		return
-	%FogOfWarLayer.set_cell(map_loc, _fog_of_war_source_id, Vector2i(darkness_x,0))
+	_fog_of_war_image.set_pixel(map_loc.x, map_loc.y, new_color)
 
 
 func _place_object(node: Node2D, map_loc: Vector2i) -> void:
