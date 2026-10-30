@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://nffm0pf5qxip"]
+
+[ext_resource type="Shader" uid="uid://c6ysjxq1hmubs" path="res://art/fog_of_war.gdshader" id="1_lt1mu"]
+
+[resource]
+shader = ExtResource("1_lt1mu")
+shader_parameter/fog_size = Vector2(0, 0)

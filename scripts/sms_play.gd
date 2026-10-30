@@ -230,6 +230,7 @@ func enter_state() -> void:
 	%FogOfWarRect.position = top_left_pixel
 	%FogOfWarRect.size = total_pixel_size
 	%FogOfWarRect.texture = _fog_of_war_texture
+	%FogOfWarRect.material.set_shader_parameter("fog_size", Vector2(_max_x, _max_y))
 	
 	_update_fog_of_war()
 
@@ -829,10 +830,10 @@ func _process_awaiting_command_selection(_delta: float, _ug: UnitGraphic, _facin
 var _fog_of_war_image: Image
 var _fog_of_war_texture: ImageTexture
 const _color_full_black: Color = Color(0, 0, 0, 1)
-const _color_has_seen: Color = Color(0,0,0,0.8)
-const _color_far: Color = Color(0,0,0,0.6)
-const _color_medium: Color = Color(0,0,0,0.4)
-const _color_close: Color = Color(0,0,0,0.2)
+const _color_has_seen: Color = Color(0,0,0,0.9)
+const _color_far: Color = Color(0,0,0,0.8)
+const _color_medium: Color = Color(0,0,0,0.6)
+const _color_close: Color = Color(0,0,0,0.3)
 const _color_full_bright: Color = Color(0, 0, 0, 0)
 func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
 	for x in range(0, _max_x):
@@ -852,7 +853,8 @@ func _update_fog_of_war(extra_fullbright: Array[Vector2i] = []) -> void:
 	for fullbright: Vector2i in extra_fullbright:
 		_fog_of_war_image.set_pixel(fullbright.x, fullbright.y, _color_full_bright)
 	_fog_of_war_texture.update(_fog_of_war_image)
-	%FogOfWarRect.texture = _fog_of_war_texture
+	%FogOfWarRect.material.set_shader_parameter("fog_data", _fog_of_war_texture)
+	#%FogOfWarRect.texture = _fog_of_war_texture
 
 
 func update_light_level(map_loc: Vector2i, amount_of_darkness: float) -> void:

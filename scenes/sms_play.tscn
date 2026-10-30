@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://tbfpu72ty3qq" path="res://scripts/sms_play.gd" id="1_yc7cj"]
 [ext_resource type="TileSet" uid="uid://btpbefeyvvie0" path="res://maps/tileset_dummy.tres" id="2_x7n7y"]
-[ext_resource type="TileSet" uid="uid://c28txgsyaetma" path="res://maps/tileset_fog_of_war.tres" id="3_nw82y"]
+[ext_resource type="Material" uid="uid://nffm0pf5qxip" path="res://art/fog_of_war.tres" id="4_gdi7g"]
 [ext_resource type="TileSet" uid="uid://d222aq3iwwhbj" path="res://maps/tileset_abilities.tres" id="4_s6t4g"]
 
 [node name="SMS_Play" type="Control" unique_id=191438879]
@@ -34,13 +34,9 @@ position = Vector2(574, 324)
 unique_name_in_owner = true
 tile_set = ExtResource("2_x7n7y")
 
-[node name="FogOfWarLayer" type="TileMapLayer" parent="." unique_id=318256740]
-unique_name_in_owner = true
-visible = false
-tile_set = ExtResource("3_nw82y")
-
 [node name="FogOfWarRect" type="TextureRect" parent="." unique_id=1587390236]
 unique_name_in_owner = true
+material = ExtResource("4_gdi7g")
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
